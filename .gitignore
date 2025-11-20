@@ -23,3 +23,5 @@ src/Snap.Hutao/Snap.Hutao/Properties/PublishProfiles/FolderProfile.pubxml.user
 src/Snap.Hutao/Snap.Hutao/Generated Files/
 
 tools/
+
+src\Snap.Hutao\Snap.Hutao\AppPackages
