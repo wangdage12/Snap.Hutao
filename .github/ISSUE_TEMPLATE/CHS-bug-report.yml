@@ -1,0 +1,93 @@
+name: 问题反馈
+description: 通过这个议题向开发团队反馈你发现的程序中的问题
+title: "[Bug]: 在这里填写一个合适的标题"
+type: "Bug"
+labels: ["priority:none"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > **请在上方以一句话简短地概括你的问题作为标题**
+        > 请按下方的要求填写完整的问题表单，以便我们更快的定位问题。
+
+  - type: input
+    id: winver
+    attributes:
+      label: Windows 版本
+      description: |
+        `Win+R` 输入 `winver` 回车后在打开的窗口第二行可以找到
+      placeholder: 例：22000.556
+    validations:
+      required: true
+
+  - type: input
+    id: shver
+    attributes:
+      label: Snap Hutao 版本
+      description: 在应用标题，应用程序的反馈中心界面中可以找到
+      placeholder: 例：1.9.9.0
+    validations:
+      required: true
+
+  - type: input
+    id: deviceid
+    attributes:
+      label: 设备 ID
+      description: |
+        > 在胡桃工具箱的反馈中心界面，你可以找到并复制你的设备 ID
+        > 如果你的问题涉及程序崩溃，请填写该项，这将有助于我们定位问题
+        > 如果你的程序已经无法启动，请下载并运行[诊断工具](https://github.com/DGP-Automation/ISSUE_TEMPLATES/releases/download/diagnosis_tools/Snap.Hutao.Diagnostic.Tooling.exe)，它将显示你的设备 ID
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user-set-category
+    attributes:
+      label: 问题分类
+      description: 请设置一个你认为合适的分类，这将帮助我们快速定位问题
+      options:
+        - 安装和环境
+        - 游戏启动器
+        - 祈愿记录
+        - 成就管理
+        - 我的角色
+        - 实时便笺
+        - 养成计算
+        - 深境螺旋/胡桃数据库
+        - Wiki
+        - 米游社账号面板
+        - 每日签到奖励
+        - 胡桃通行证/胡桃云
+        - 用户界面
+        - 文件缓存
+        - 公告
+        - 其它
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么？
+      description: |
+        详细的描述问题发生前后的行为，以便我们解决问题。**如果你的问题涉及程序崩溃，你应当检查 Windows 事件查看器，并将相关的 `.Net 错误`详情附上**
+        如果你无法找到该日志，请下载并运行[诊断工具](https://github.com/DGP-Automation/ISSUE_TEMPLATES/releases/download/diagnosis_tools/Snap.Hutao.Diagnostic.Tooling.exe)，它将转储问题日志至工具运行目录中的 `Snap.Hutao Error Log.txt`
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: 你期望发生的行为？
+      description: 详细的描述你期望发生的行为，突出与目前（可能不正确的）行为的不同
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist-final
+    attributes:
+      label: 最后一步
+      description: 回顾你的回答
+      options:
+        - label: 我认为上述的描述已经足以详细，以允许开发人员能复现该问题
+          required: true

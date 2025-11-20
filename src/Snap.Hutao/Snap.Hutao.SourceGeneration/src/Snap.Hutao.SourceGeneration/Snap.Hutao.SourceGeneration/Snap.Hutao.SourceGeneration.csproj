@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU</Platforms>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <Configurations>Debug;Release</Configurations>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <PackageReference>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" PrivateAssets="all" Version="2025.2.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" PrivateAssets="all" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
+    <!-- DO NOT UPDATE CodeAnalysis VERSION BEFORE AppVeyor DO -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" Version="3.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" Version="4.12.0" />
+    <PackageReference Include="PolySharp" PrivateAssets="all" Version="1.15.0" />
+    <PackageReference Include="System.Text.Encodings.Web" PrivateAssets="all" Version="9.0.8" />
+    <PackageReference Include="System.Text.Json" PrivateAssets="all" Version="9.0.8" />
+  </ItemGroup>
+
+  <Target Name="AddGenerationTimeReferences" AfterTargets="ResolvePackageDependenciesForBuild">
+    <ItemGroup>
+      <None Include="@(ResolvedCompileFileDefinitions)" Pack="true" PackagePath="analyzers/dotnet/cs" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PackageId>Snap.Hutao.SourceGeneration</PackageId>
+    <Version>1.3.14</Version>
+    <Authors>DGP Studio</Authors>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Source Code generator for Snap.Hutao</Description>
+    <RepositoryUrl>https://github.com/DGP-Studio/Snap.Hutao.SourceGeneration</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/DGP-Studio/Snap.Hutao.SourceGeneration</PackageProjectUrl>
+    <!-- https://github.com/nuget/home/issues/8583 -->
+    <!-- https://github.com/NuGet/docs.microsoft.com-nuget/blob/main/docs/reference/errors-and-warnings/NU5128.md -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+  </PropertyGroup>
+
+</Project>

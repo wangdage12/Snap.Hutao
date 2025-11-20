@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snap.Hutao.SourceGeneration", "Snap.Hutao.SourceGeneration\Snap.Hutao.SourceGeneration.csproj", "{88EDFA23-56FD-4C43-9C1A-EB1B9E9AE723}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{88EDFA23-56FD-4C43-9C1A-EB1B9E9AE723}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{88EDFA23-56FD-4C43-9C1A-EB1B9E9AE723}.Debug|x64.Build.0 = Debug|Any CPU
+		{88EDFA23-56FD-4C43-9C1A-EB1B9E9AE723}.Release|x64.ActiveCfg = Release|Any CPU
+		{88EDFA23-56FD-4C43-9C1A-EB1B9E9AE723}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A5D24877-D905-43A2-BDEA-C2901AF163BE}
+	EndGlobalSection
+EndGlobal

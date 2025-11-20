@@ -1,0 +1,25 @@
+desktop.ini
+
+*.csproj.user
+*.DotSettings.user
+
+.vs/
+.idea/
+src/Snap.Hutao/_ReSharper.Caches
+
+src/Snap.Hutao/Snap.Hutao/bin/
+src/Snap.Hutao/Snap.Hutao/obj/
+src/Snap.Hutao/Snap.Hutao/Resource/Localization/SH.Designer.cs
+src/Snap.Hutao/Snap.Hutao/Snap.Hutao_TemporaryKey.pfx
+
+src/Snap.Hutao/Snap.Hutao.Benchmark/bin/
+src/Snap.Hutao/Snap.Hutao.Benchmark/obj/
+
+src/Snap.Hutao/Snap.Hutao.Test/bin/
+src/Snap.Hutao/Snap.Hutao.Test/obj/
+
+src/Snap.Hutao/Snap.Hutao/Properties/PublishProfiles/FolderProfile.pubxml.user
+
+src/Snap.Hutao/Snap.Hutao/Generated Files/
+
+tools/

@@ -1,0 +1,45 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <Color x:Key="AvatarPropertyAddValueColor">#FF74BF00</Color>
+            <Color x:Key="CompatBackgroundColor">#FFF4F4F4</Color>
+            <Color x:Key="DarkOnlyOverlayMaskColor">#00000000</Color>
+            <Color x:Key="LightOnlyIconBackgroundColor">#A0000000</Color>
+            <Color x:Key="CultivationHighlightColor">#206A890A</Color>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+            <Color x:Key="AvatarPropertyAddValueColor">#FF90E800</Color>
+            <Color x:Key="CompatBackgroundColor">#FF242424</Color>
+            <Color x:Key="DarkOnlyOverlayMaskColor">#60000000</Color>
+            <Color x:Key="LightOnlyIconBackgroundColor">#00000000</Color>
+            <Color x:Key="CultivationHighlightColor">#20A5D610</Color>
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+    <Color x:Key="BlueColor">#FF5180CB</Color>
+    <Color x:Key="BlueDark2Color">#FF324F7E</Color>
+    <Color x:Key="PurpleColor">#FFA156E0</Color>
+    <Color x:Key="PurpleDark2Color">#FF6A3893</Color>
+    <Color x:Key="OrangeColor">#FFBC6932</Color>
+    <Color x:Key="OrangeDark2Color">#FF6F3E1D</Color>
+
+    <Color x:Key="GuaranteePullColor">#FF0063FF</Color>
+    <Color x:Key="UpPullColor">#FFFFA400</Color>
+
+    <SolidColorBrush x:Key="SolidBackgroundFillColorTransparentBrush" Color="{ThemeResource SolidBackgroundFillColorTransparent}"/>
+
+    <SolidColorBrush x:Key="BlueColorBrush" Color="{ThemeResource BlueColor}"/>
+    <SolidColorBrush x:Key="BlueDark2ColorBrush" Color="{ThemeResource BlueDark2Color}"/>
+    <SolidColorBrush x:Key="PurpleColorBrush" Color="{ThemeResource PurpleColor}"/>
+    <SolidColorBrush x:Key="PurpleDark2ColorBrush" Color="{ThemeResource PurpleDark2Color}"/>
+    <SolidColorBrush x:Key="OrangeColorBrush" Color="{ThemeResource OrangeColor}"/>
+    <SolidColorBrush x:Key="OrangeDark2ColorBrush" Color="{ThemeResource OrangeDark2Color}"/>
+
+    <SolidColorBrush x:Key="GuaranteePullColorBrush" Color="{ThemeResource GuaranteePullColor}"/>
+    <SolidColorBrush x:Key="UpPullColorBrush" Color="{ThemeResource UpPullColor}"/>
+
+    <SolidColorBrush x:Key="DarkOnlyOverlayMaskColorBrush" Color="{ThemeResource DarkOnlyOverlayMaskColor}"/>
+    <SolidColorBrush x:Key="LightOnlyIconBackgroundColorBrush" Color="{ThemeResource LightOnlyIconBackgroundColor}"/>
+    <SolidColorBrush x:Key="AvatarPropertyAddValueColorBrush" Color="{ThemeResource AvatarPropertyAddValueColor}"/>
+    <SolidColorBrush x:Key="CultivationHighlightColorBrush" Color="{ThemeResource CultivationHighlightColor}"/>
+</ResourceDictionary>

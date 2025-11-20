@@ -1,0 +1,25 @@
+name: Build and Publish NuGet Package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0
+
+    - name: Pack
+      run: dotnet pack --configuration Release src/Snap.Hutao.SourceGeneration/Snap.Hutao.SourceGeneration/Snap.Hutao.SourceGeneration.csproj
+
+    - name: Publish to NuGet
+      run: dotnet nuget push src/Snap.Hutao.SourceGeneration/Snap.Hutao.SourceGeneration/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}

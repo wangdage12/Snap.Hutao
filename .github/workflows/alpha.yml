@@ -1,0 +1,139 @@
+name: Snap Hutao Alpha
+on:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+    paths-ignore:
+      - '.gitattributes'
+      - '.github/**'
+      - '.gitignore'
+      - '.gitmodules'
+      - '**.md'
+      - 'LICENSE'
+      - '**.yml'
+  pull_request:
+    branches: [ develop ]
+    paths-ignore:
+      - '.gitattributes'
+      - '.github/**'
+      - '.gitignore'
+      - '.gitmodules'
+      - '**.md'
+      - 'LICENSE'
+      - '**.yml'
+      - '**.resx'
+
+jobs:
+  select-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.select_runner.outputs.runner }}
+    steps:
+      - name: Select runner
+        id: select_runner
+        shell: bash
+        env:
+          ORG:  ${{ github.repository_owner }}
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ secrets.RUNNER_CHECK_TOKEN }}
+          LABEL: ${{ vars.RUNNER_LABEL || 'sjc1' }}
+        run: |
+          set -o pipefail
+          FALLBACK="windows-latest"
+
+          get_status_by_label () {
+            local url="$1"
+            local json
+            json=$(curl -fsSL \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $TOKEN" \
+              "$url" 2>/dev/null || true)
+            jq -r --arg label "$LABEL" '
+              (.runners // [])
+              | map(select(any(.labels[]?; .name==$label)))
+              | .[0].status // ""' <<<"$json" 2>/dev/null || echo ""
+          }
+
+          # Check org's runner first and then repo's
+          STATUS="$(get_status_by_label "https://api.github.com/orgs/${ORG}/actions/runners?per_page=100")"
+          if [ -z "$STATUS" ]; then
+            STATUS="$(get_status_by_label "https://api.github.com/repos/${REPO}/actions/runners?per_page=100")"
+          fi
+
+          if [ "$STATUS" = "online" ]; then
+            PICK="$LABEL"
+          else
+            PICK="$FALLBACK"
+          fi
+
+          echo "Selected runner: $PICK (label=$LABEL, status=${STATUS:-unknown})"
+          echo "runner=$PICK" >> "$GITHUB_OUTPUT"
+  build:
+    needs: select-runner
+    runs-on: ${{ needs.select-runner.outputs.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET (self-hosted)
+        if: ${{ needs.select-runner.outputs.runner == 'sjc1' }}
+        shell: pwsh
+        run: |
+          Write-Host "Running environment setup script…"
+          Invoke-WebRequest `
+            -Uri 'https://raw.githubusercontent.com/DGP-Studio/Snap.Hutao.DevelopEnvironment.Setup/refs/heads/main/setup.ps1' `
+            -OutFile 'setup.ps1' `
+            -UseBasicParsing
+          Write-Host "Executing setup.ps1"
+          .\setup.ps1
+
+      - name: Setup .NET
+        if: ${{ needs.select-runner.outputs.runner == 'windows-latest' }}
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0
+
+      - name: Cache NuGet packages
+        if: ${{ needs.select-runner.outputs.runner == 'windows-latest' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Snap.Hutao.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Cake
+        id: cake
+        shell: pwsh
+        run: dotnet tool restore && dotnet cake
+        env:
+          VERSION_API_TOKEN: ${{ secrets.VERSION_API_TOKEN }}
+          CERTIFICATE: ${{ secrets.CERTIFICATE }}
+          PW: ${{ secrets.PW }}
+
+      - name: Upload signed msix
+        if: success() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v5
+        with:
+          name: Snap.Hutao.Alpha-${{ steps.cake.outputs.version }}
+          path: ${{ github.workspace }}/src/output/Snap.Hutao.Alpha-${{ steps.cake.outputs.version }}.msix
+
+      - name: Add summary
+        if: success() && github.event_name != 'pull_request'
+        shell: pwsh
+        run: |
+          $summary = "
+          > [!WARNING]
+          > 该版本是由 CI 程序自动打包生成的 `Alpha` 测试版本，包含已经基本完工的新功能及问题修复
+
+          > [!IMPORTANT]
+          > 请先安装 **[DGP_Studio_CA.crt](https://github.com/DGP-Automation/Hutao-Auto-Release/releases/download/certificate-ca/DGP_Studio_CA.crt)** 到 **受信任的根证书颁发机构** 以安装测试版安装包
+          "
+          echo $summary >> $Env:GITHUB_STEP_SUMMARY
+
+      - name: Clean up
+        shell: pwsh
+        run: |
+          Write-Host "Cleaning up NuGet cache..."
+          Remove-Item -Recurse -Force "$env:USERPROFILE\.nuget\packages"
+          Write-Host "NuGet cache cleaned."

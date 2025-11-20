@@ -1,0 +1,50 @@
+{
+  "help": "https://go.microsoft.com/fwlink/?linkid=866610",
+  "dependentFileProviders": {
+    "add": {
+      "extensionToExtension": {
+        "add": {
+          ".json": [
+            ".txt"
+          ]
+        }
+      },
+      "pathSegment": {
+        "add": {
+          ".*": [
+            ".cs",
+            ".resx",
+            ".appxmanifest"
+          ]
+        }
+      },
+      "fileSuffixToExtension": {
+        "add": {
+          "DesignTimeFactory.cs": [".cs"]
+        }
+      },
+      "fileToFile": {
+        "add": {
+          ".filenesting.json": [
+            "App.xaml.cs"
+          ],
+          "app.manifest": [
+            "App.xaml.cs"
+          ],
+          "Package.appxmanifest": [
+            "App.xaml"
+          ],
+          "Package.StoreAssociation.xml": [
+            "App.xaml"
+          ],
+          ".editorconfig": [
+            "Bootstrap.cs"
+          ],
+          "GlobalUsing.cs": [
+            "Bootstrap.cs"
+          ]
+        }
+      }
+    }
+  }
+}

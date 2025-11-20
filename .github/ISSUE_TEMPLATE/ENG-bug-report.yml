@@ -1,0 +1,93 @@
+name: BUG Report [English Form]
+description: Tell us what issue you get
+title: "[ENG][Bug]: Place your Issue Title Here"
+type: "Bug"
+labels: ["priority:none"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > **Please use one sentence to briefly describe your issue as title above**
+        > Please follow the instruction below to fill the form, so we can locate the issue quickly
+
+  - type: input
+    id: winver
+    attributes:
+      label: Windows Version
+      description: |
+        Use `Win+R` and input `winver`, Windows build version is usually at the second line
+      placeholder: e.g. 22000.556
+    validations:
+      required: true
+
+  - type: input
+    id: shver
+    attributes:
+      label: Snap Hutao Version
+      description: You can find the version in application's title bar
+      placeholder: e.g. 1.9.9.0
+    validations:
+      required: true
+
+  - type: input
+    id: deviceid
+    attributes:
+      label: Device ID
+      description: |
+        > In Snap Hutao's Feedback Center, you can find and copy your device ID
+        > If your issue is about program crash, please fill this so we can dump the log and locate the source easier
+        > If your program cannot startup, please download and run [Diagnostic Tooling](https://github.com/DGP-Automation/ISSUE_TEMPLATES/releases/download/diagnosis_tools/Snap.Hutao.Diagnostic.Tooling.exe), it will shows your device ID.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user-set-category
+    attributes:
+      label: Issue Category
+      description: Please select the most associated category of your issue
+      options:
+        - Installation and Environment
+        - Game Launcher
+        - Wish Export
+        - Achievement
+        - My Character
+        - Realtime Note
+        - Develop Plan
+        - Spiral Abyss
+        - Wiki
+        - MiHoYo Account Panel
+        - Daily Checkin Reward
+        - Hutao Passport/Hutao Cloud
+        - User Interface
+        - File Cache
+        - Announcement
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What Happened?
+      description: |
+        Describe your issue in detail to help us identify the issue. **If your issue is about program crash, you should check Windows Event Viewer, and attach associated `.Net Error` details here**If your program cannot startup, please download and run [this PowerShell script](https://github.com/DGP-Studio/ISSUE_TEMPLATES/releases/download/get_device_id/GetHutaoDeviceId.ps1), it will shows your device ID.
+        If you cannot find it, please download and run [Diagnosis Tool](https://github.com/DGP-Automation/ISSUE_TEMPLATES/releases/download/diagnosis_tools/Snap.Hutao.Diagnostic.Tooling.exe), it will dump the error log to `Snap.Hutao Error Log.txt` in the working directory of the tool.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What is expected?
+      description: Describe expected outcome, highlight the difference with current outcome
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist-final
+    attributes:
+      label: Last Step
+      description: Review your Form
+      options:
+        - label: I believe the description above is detail enough to allow developers to reproduce the issue
+          required: true
