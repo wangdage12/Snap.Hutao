@@ -1,4 +1,8 @@
 # Snap.Hutao.SourceGeneration
+
+> 生成器包的备份，目前还可以从nuget上获取，所以暂时不需要使用该目录  
+> https://www.nuget.org/packages/Snap.Hutao.SourceGeneration/1.3.14
+
 Source Code Generator for Snap.Hutao
 
 # Development Guideline
