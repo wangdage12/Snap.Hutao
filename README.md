@@ -13,7 +13,8 @@ Snap Hutao is an open-source Genshin Impact toolkit under MIT license, designed 
 
 ## 🚀 安装 / Installation
 
-前往[releases](https://github.com/wangdage12/Snap.Hutao/releases/tag/1.17.1.0)中下载zip，解压后右键`Add-AppDevPackage.ps1`，点击`使用PowerShell运行`来安装
+前往[releases](https://github.com/wangdage12/Snap.Hutao/releases/tag/1.17.1.0)中下载zip，解压后右键`Add-AppDevPackage.ps1`，点击`使用PowerShell运行`来安装  
+可以和之前的版本共存，将之前版本的数据文件夹里面的文件复制到该版本的数据文件夹中即可恢复数据
 
 ---
 
@@ -42,11 +43,18 @@ https://deepwiki.com/DGP-Studio/Snap.Hutao.Server
 > `C:\Users\<用户名>\AppData\Local\Packages\xxxDGPStudio.SnapHutao_xxx\LocalCache\ImageCache`  
 > 并将`ImageCache`文件夹提供给我，我会尽力恢复资源
 
-**临时的元数据仓库：**  
+**元数据仓库：**  
+https://github.com/wangdage12/Snap.Metadata
+
+镜像：  
 http://server.wdg.cloudns.ch:3000/wdg1122/Snap.Metadata
+
+---
 
 **临时API：**  
 http://server.wdg.cloudns.ch:5222/
+
+---
 
 **临时资源站：**  
 http://server.wdg.cloudns.ch:8007/
