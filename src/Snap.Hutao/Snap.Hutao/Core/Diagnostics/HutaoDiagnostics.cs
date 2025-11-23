@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Microsoft.EntityFrameworkCore;
+using Snap.Hutao.Core.ApplicationModel;
 using Snap.Hutao.Model.Entity.Database;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,7 +18,20 @@ internal sealed partial class HutaoDiagnostics : IHutaoDiagnostics
     [GeneratedConstructor]
     public partial HutaoDiagnostics(IServiceProvider serviceProvider);
 
-    public ApplicationDataContainer LocalSettings { get => ApplicationData.Current.LocalSettings; }
+    public ApplicationDataContainer? LocalSettings
+    {
+        get
+        {
+            if (PackageIdentityAdapter.HasPackageIdentity)
+            {
+                return ApplicationData.Current.LocalSettings;
+            }
+
+            // In unpackaged mode, ApplicationDataContainer is not available
+            // Return null - scripting/diagnostics code should handle this gracefully
+            return null;
+        }
+    }
 
     public async ValueTask<int> ExecuteSqlAsync(string sql)
     {

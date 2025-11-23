@@ -1,24 +1,24 @@
 <Solution>
   <Configurations>
     <Platform Name="Any CPU" />
+    <Platform Name="ARM64" />
     <Platform Name="x64" />
+    <Platform Name="x86" />
   </Configurations>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path=".vsconfig" />
   </Folder>
-  <Project Path="Snap.Hutao.Test\Snap.Hutao.Test.csproj" />
-  <Project Path="Snap.Hutao\Snap.Hutao.csproj">
-    <!--  For Rider  -->
-    <Configuration Solution="Debug|Any CPU" Project="Debug|x64|Deploy" />
-    <Configuration Solution="Debug|x64" Project="Debug|x64|Deploy" />
-    <Configuration Solution="Release|Any CPU" Project="Release|x64|Deploy" />
-    <Configuration Solution="Release|x64" Project="Release|x64|Deploy" />
-    <!--  For Visual Studio  -->
+  <Project Path="Snap.Hutao.Installer/Snap.Hutao.Installer.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0" Id="91a04cd0-28cc-4562-92e1-202bc163edd7">
     <Platform Solution="*|Any CPU" Project="x64" />
-    <Platform Solution="*|arm64" Project="arm64" />
-    <Platform Solution="*|x64" Project="x64" />
-    <Platform Solution="*|x86" Project="x86" />
-    <Deploy />
+  </Project>
+  <Project Path="Snap.Hutao.Test\Snap.Hutao.Test.csproj">
+    <Build Solution="*|ARM64" Project="false" />
+    <Build Solution="*|x86" Project="false" />
+  </Project>
+  <Project Path="Snap.Hutao\Snap.Hutao.csproj">
+    <Platform Project="x64" />
+    <Deploy Solution="*|Any CPU" />
+    <Deploy Solution="*|x64" />
   </Project>
 </Solution>

@@ -1,11 +1,10 @@
 // Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Snap.Hutao.Core.ApplicationModel;
 using System.IO;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using Windows.ApplicationModel;
-using Windows.Storage;
 
 namespace Snap.Hutao.Core;
 
@@ -13,7 +12,7 @@ internal static class InstalledLocation
 {
     public static string GetAbsolutePath(string relativePath)
     {
-        return Path.Combine(Package.Current.InstalledLocation.Path, relativePath);
+        return Path.Combine(PackageIdentityAdapter.AppDirectory, relativePath);
     }
 
     public static void CopyFileFromApplicationUri(string url, string path)
@@ -23,8 +22,26 @@ internal static class InstalledLocation
         static async Task CopyApplicationUriFileCoreAsync(string url, string path)
         {
             await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
-            StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(url.ToUri());
-            using (Stream outputStream = (await file.OpenReadAsync()).AsStreamForRead())
+
+            Uri uri = url.ToUri();
+            Stream outputStream;
+
+            if (PackageIdentityAdapter.HasPackageIdentity)
+            {
+                // Packaged: use StorageFile
+                Windows.Storage.StorageFile file = await Windows.Storage.StorageFile.GetFileFromApplicationUriAsync(uri);
+                outputStream = (await file.OpenReadAsync()).AsStreamForRead();
+            }
+            else
+            {
+                // Unpackaged: read from file system directly
+                // Assume ms-appx:/// points to the app directory
+                string localPath = uri.LocalPath.TrimStart('/');
+                string fullPath = Path.Combine(PackageIdentityAdapter.AppDirectory, localPath);
+                outputStream = File.OpenRead(fullPath);
+            }
+
+            using (outputStream)
             {
                 if (File.Exists(path))
                 {

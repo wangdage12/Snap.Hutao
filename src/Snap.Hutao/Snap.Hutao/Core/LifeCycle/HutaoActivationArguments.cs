@@ -66,4 +66,14 @@ internal sealed class HutaoActivationArguments
 
         return result;
     }
+
+    public static HutaoActivationArguments CreateDefaultLaunchArguments()
+    {
+        return new HutaoActivationArguments
+        {
+            IsRedirectTo = false,
+            Kind = HutaoActivationKind.Launch,
+            LaunchActivatedArguments = string.Empty
+        };
+    }
 }

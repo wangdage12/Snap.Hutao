@@ -147,6 +147,27 @@ internal sealed class ProcessFactory
     {
         string repoDirectory = HutaoRuntime.GetDataRepositoryDirectory();
         string fullTrustFilePath = Path.Combine(repoDirectory, "Snap.ContentDelivery", "Snap.Hutao.FullTrust.exe");
+
+        // Check if FullTrust executable exists - if not, fallback to normal admin mode
+        if (!File.Exists(fullTrustFilePath))
+        {
+            string errorMessage = $"""
+                Island 功能需要的 FullTrust 进程文件不存在，将使用普通管理员模式启动游戏。
+                预期路径：{fullTrustFilePath}
+                
+                原因：ContentDelivery 仓库尚未下载或初始化失败（常见于非打包模式首次运行）
+                
+                Island 功能将不可用，但游戏可以正常启动。
+                等待仓库下载完成后可重新尝试使用 Island 功能。
+                """;
+
+            // Capture as breadcrumb instead of exception
+            SentrySdk.AddBreadcrumb(errorMessage, category: "process.fulltrust", level: Sentry.BreadcrumbLevel.Warning);
+
+            // Fallback to normal admin mode - Island features will not work but game can launch
+            return CreateUsingShellExecuteRunAs(arguments, fileName, workingDirectory);
+        }
+
         StartUsingShellExecuteRunAs(fullTrustFilePath);
 
         FullTrustProcessStartInfoRequest request = new()

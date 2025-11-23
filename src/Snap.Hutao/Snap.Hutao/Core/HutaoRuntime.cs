@@ -4,6 +4,7 @@
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 using Microsoft.Windows.AppNotifications;
+using Snap.Hutao.Core.ApplicationModel;
 using Snap.Hutao.Core.ExceptionService;
 using Snap.Hutao.Core.IO;
 using Snap.Hutao.Core.IO.Hashing;
@@ -13,31 +14,32 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using Windows.ApplicationModel;
-using Windows.Storage;
 
 namespace Snap.Hutao.Core;
 
 internal static class HutaoRuntime
 {
-    public static Version Version { get; } = Package.Current.Id.Version.ToVersion();
+    public static Version Version { get; } = PackageIdentityAdapter.AppVersion;
 
     public static string UserAgent { get; } = $"Snap Hutao/{Version}";
 
     public static string DataDirectory { get; } = InitializeDataDirectory();
 
-    public static string LocalCacheDirectory { get; } = ApplicationData.Current.LocalCacheFolder.Path;
+    public static string LocalCacheDirectory { get; } = InitializeLocalCacheDirectory();
 
-    public static string FamilyName { get; } = Package.Current.Id.FamilyName;
+    public static string FamilyName { get; } = PackageIdentityAdapter.FamilyName;
 
     public static string DeviceId { get; } = InitializeDeviceId();
 
     public static WebView2Version WebView2Version { get; } = InitializeWebView2();
 
-    public static bool IsProcessElevated { get; } = LocalSetting.Get(SettingKeys.OverrideElevationRequirement, false) || Environment.IsPrivilegedProcess;
+    // ⚠️ 延迟初始化以避免循环依赖
+    private static readonly Lazy<bool> LazyIsProcessElevated = new(GetIsProcessElevated);
+    
+    public static bool IsProcessElevated => LazyIsProcessElevated.Value;
 
     // Requires main thread
-    public static bool IsAppNotificationEnabled { get; } = AppNotificationManager.Default.Setting is AppNotificationSetting.Enabled;
+    public static bool IsAppNotificationEnabled { get; } = CheckAppNotificationEnabled();
 
     public static string? GetDisplayName()
     {
@@ -106,32 +108,57 @@ internal static class HutaoRuntime
         return string.Intern(directory);
     }
 
-    private static string InitializeDataDirectory()
+    private static bool GetIsProcessElevated()
     {
-        // Delete the previous data folder if it exists
+        // ⚠️ 这里调用 LocalSetting 时，确保 DataDirectory 已经初始化完成
         try
         {
-            string previousDirectory = LocalSetting.Get(SettingKeys.PreviousDataDirectoryToDelete, string.Empty);
-            if (!string.IsNullOrEmpty(previousDirectory) && Directory.Exists(previousDirectory))
-            {
-                Directory.SetReadOnly(previousDirectory, false);
-                Directory.Delete(previousDirectory, true);
-            }
+            return LocalSetting.Get(SettingKeys.OverrideElevationRequirement, false) || Environment.IsPrivilegedProcess;
         }
-        finally
+        catch
         {
-            LocalSetting.Set(SettingKeys.PreviousDataDirectoryToDelete, string.Empty);
+            // 如果读取失败，使用默认值
+            return Environment.IsPrivilegedProcess;
         }
+    }
 
-        // Check if the preferred path is set
-        string currentDirectory = LocalSetting.Get(SettingKeys.DataDirectory, string.Empty);
-
-        if (!string.IsNullOrEmpty(currentDirectory))
+    private static string InitializeLocalCacheDirectory()
+    {
+        if (PackageIdentityAdapter.HasPackageIdentity)
         {
-            Directory.CreateDirectory(currentDirectory);
-            return currentDirectory;
+            return Windows.Storage.ApplicationData.Current.LocalCacheFolder.Path;
         }
 
+        // Unpackaged: use %LOCALAPPDATA%\Snap.Hutao\Cache
+        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        const string FolderName
+#if IS_ALPHA_BUILD
+            = "HutaoAlpha";
+#elif IS_CANARY_BUILD
+            = "HutaoCanary";
+#else
+            = "Hutao";
+#endif
+        string cacheDir = Path.Combine(localAppData, FolderName, "Cache");
+        Directory.CreateDirectory(cacheDir);
+        return cacheDir;
+    }
+
+    private static bool CheckAppNotificationEnabled()
+    {
+        try
+        {
+            return AppNotificationManager.Default.Setting is AppNotificationSetting.Enabled;
+        }
+        catch
+        {
+            // In unpackaged mode, this might fail - return false
+            return false;
+        }
+    }
+
+    private static string InitializeDataDirectory()
+    {
         const string FolderName
 #if IS_ALPHA_BUILD
         = "HutaoAlpha";
@@ -141,30 +168,43 @@ internal static class HutaoRuntime
         = "Hutao";
 #endif
 
+        // ⚠️ 不要在这里调用 LocalSetting - 会导致循环依赖
+        // 先确定默认的数据目录位置
+
         // Check if the old documents path exists
         string myDocumentsHutaoDirectory = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), FolderName));
         if (Directory.Exists(myDocumentsHutaoDirectory))
         {
-            LocalSetting.Set(SettingKeys.DataDirectory, myDocumentsHutaoDirectory);
             return myDocumentsHutaoDirectory;
         }
 
-        // Prefer LocalApplicationData
-        string localApplicationData = ApplicationData.Current.LocalFolder.Path;
-        string path = Path.GetFullPath(Path.Combine(localApplicationData, FolderName));
+        // Use LocalApplicationData
+        string localApplicationData;
+        if (PackageIdentityAdapter.HasPackageIdentity)
+        {
+            localApplicationData = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+        }
+        else
+        {
+            // Unpackaged: use %LOCALAPPDATA%
+            localApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        }
+        
+        string defaultPath = Path.GetFullPath(Path.Combine(localApplicationData, FolderName));
+        
+        // ⚠️ 延迟处理：在第一次使用 LocalSetting 后再检查是否有自定义路径
+        // 这里返回默认路径，后续通过 LocalSetting 可能会更新
         try
         {
-            Directory.CreateDirectory(path);
+            Directory.CreateDirectory(defaultPath);
         }
         catch (Exception ex)
         {
             // FileNotFoundException | UnauthorizedAccessException
-            // We don't have enough permission
-            HutaoException.InvalidOperation($"Failed to create data folder: {path}", ex);
+            HutaoException.InvalidOperation($"Failed to create data folder: {defaultPath}", ex);
         }
 
-        LocalSetting.Set(SettingKeys.DataDirectory, path);
-        return path;
+        return defaultPath;
     }
 
     private static string InitializeDeviceId()

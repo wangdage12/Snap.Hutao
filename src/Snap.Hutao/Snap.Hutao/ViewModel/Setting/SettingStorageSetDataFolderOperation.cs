@@ -3,6 +3,7 @@
 
 using Microsoft.UI.Xaml.Controls;
 using Snap.Hutao.Core;
+using Snap.Hutao.Core.ApplicationModel;
 using Snap.Hutao.Core.Setting;
 using Snap.Hutao.Factory.ContentDialog;
 using Snap.Hutao.Factory.Picker;
@@ -71,8 +72,18 @@ internal sealed class SettingStorageSetDataFolderOperation
         try
         {
             Directory.SetReadOnly(oldFolderPath, false);
-            StorageFolder oldFolder = await StorageFolder.GetFolderFromPathAsync(oldFolderPath);
-            await oldFolder.CopyAsync(newFolderPath).ConfigureAwait(false);
+
+            if (PackageIdentityAdapter.HasPackageIdentity)
+            {
+                // Packaged: use StorageFolder API
+                StorageFolder oldFolder = await StorageFolder.GetFolderFromPathAsync(oldFolderPath);
+                await oldFolder.CopyAsync(newFolderPath).ConfigureAwait(false);
+            }
+            else
+            {
+                // Unpackaged: use standard file I/O
+                await CopyDirectoryAsync(oldFolderPath, newFolderPath).ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
@@ -83,5 +94,23 @@ internal sealed class SettingStorageSetDataFolderOperation
         LocalSetting.Set(SettingKeys.PreviousDataDirectoryToDelete, oldFolderPath);
         LocalSetting.Set(SettingKeys.DataDirectory, newFolderPath);
         return true;
+    }
+
+    private static async ValueTask CopyDirectoryAsync(string sourceDir, string destDir)
+    {
+        await Task.Run(() =>
+        {
+            // Create all directories
+            foreach (string dirPath in Directory.GetDirectories(sourceDir, "*", SearchOption.AllDirectories))
+            {
+                Directory.CreateDirectory(dirPath.Replace(sourceDir, destDir));
+            }
+
+            // Copy all files
+            foreach (string filePath in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
+            {
+                File.Copy(filePath, filePath.Replace(sourceDir, destDir), true);
+            }
+        }).ConfigureAwait(false);
     }
 }

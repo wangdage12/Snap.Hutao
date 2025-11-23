@@ -13,6 +13,7 @@ using Snap.Hutao.Service;
 using Snap.Hutao.UI.Xaml;
 using Snap.Hutao.UI.Xaml.Control.Theme;
 using System.Diagnostics;
+using System.IO;
 
 namespace Snap.Hutao;
 
@@ -64,6 +65,11 @@ public sealed partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        // ⚠️ 添加启动诊断
+        #if DEBUG
+        Core.ApplicationModel.PackageIdentityDiagnostics.LogDiagnostics();
+        #endif
+
         DebugPatchXamlDiagnosticsRemoveRootObjectFromLVT();
 
         try
@@ -71,17 +77,40 @@ public sealed partial class App : Application
             // Important: You must call AppNotificationManager::Default().Register
             // before calling AppInstance.GetCurrent.GetActivatedEventArgs.
             AppNotificationManager.Default.NotificationInvoked += activation.NotificationInvoked;
-            AppNotificationManager.Default.Register();
+            
+            try
+            {
+                AppNotificationManager.Default.Register();
+            }
+            catch
+            {
+                // In unpackaged mode, this might fail - continue anyway
+            }
 
             // E_INVALIDARG E_OUTOFMEMORY
-            AppActivationArguments activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+            AppActivationArguments? activatedEventArgs = null;
+            PrivateNamedPipeClient? namedPipeClient = null;
 
-            if (serviceProvider.GetRequiredService<PrivateNamedPipeClient>().TryRedirectActivationTo(activatedEventArgs))
+            try
             {
-                SentrySdk.AddBreadcrumb(BreadcrumbFactory.CreateInfo("Application exiting on RedirectActivationTo", "Hutao"));
-                XamlApplicationLifetime.ActivationAndInitializationCompleted = true;
-                Exit();
-                return;
+                activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+                namedPipeClient = serviceProvider.GetRequiredService<PrivateNamedPipeClient>();
+            }
+            catch
+            {
+                // In unpackaged mode, AppInstance might not work
+                // Create a default activation argument for launch
+            }
+
+            if (activatedEventArgs is not null && namedPipeClient is not null)
+            {
+                if (namedPipeClient.TryRedirectActivationTo(activatedEventArgs))
+                {
+                    SentrySdk.AddBreadcrumb(BreadcrumbFactory.CreateInfo("Application exiting on RedirectActivationTo", "Hutao"));
+                    XamlApplicationLifetime.ActivationAndInitializationCompleted = true;
+                    Exit();
+                    return;
+                }
             }
 
             logger.LogInformation($"{ConsoleBanner}");
@@ -90,10 +119,30 @@ public sealed partial class App : Application
 
             // Manually invoke
             SentrySdk.AddBreadcrumb(BreadcrumbFactory.CreateInfo("Activate and Initialize", "Application"));
-            activation.ActivateAndInitialize(HutaoActivationArguments.FromAppActivationArguments(activatedEventArgs));
+            
+            HutaoActivationArguments hutaoArgs = activatedEventArgs is not null
+                ? HutaoActivationArguments.FromAppActivationArguments(activatedEventArgs)
+                : HutaoActivationArguments.CreateDefaultLaunchArguments();
+
+            activation.ActivateAndInitialize(hutaoArgs);
         }
         catch (Exception ex)
         {
+            // ⚠️ 添加更详细的异常日志
+            try
+            {
+                string errorPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Hutao",
+                    "startup_error.txt");
+                Directory.CreateDirectory(Path.GetDirectoryName(errorPath)!);
+                File.WriteAllText(errorPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Startup Error:\n{ex}");
+            }
+            catch
+            {
+                // Ignore
+            }
+
             SentrySdk.CaptureException(ex);
             SentrySdk.Flush();
 

@@ -4,14 +4,13 @@
 using System.Collections.Frozen;
 using System.Security.Cryptography;
 using System.Text;
-using Windows.ApplicationModel;
 
 namespace Snap.Hutao.Core.ApplicationModel;
 
 internal static class LimitedAccessFeatures
 {
-    private static readonly string PackagePublisherId = Package.Current.Id.PublisherId;
-    private static readonly string PackageFamilyName = Package.Current.Id.FamilyName;
+    private static readonly string PackagePublisherId = PackageIdentityAdapter.PublisherId;
+    private static readonly string PackageFamilyName = PackageIdentityAdapter.FamilyName;
 
     private static readonly FrozenDictionary<string, string> Features = WinRTAdaptive.ToFrozenDictionary(
     [
@@ -67,8 +66,15 @@ internal static class LimitedAccessFeatures
         KeyValuePair.Create("com.microsoft.windows.windowdecorations", "425261a8-7f73-4319-8a53-fc13f87e1717")
     ]);
 
-    public static LimitedAccessFeatureRequestResult TryUnlockFeature(string featureId)
+    public static Windows.ApplicationModel.LimitedAccessFeatureRequestResult TryUnlockFeature(string featureId)
     {
+        if (!PackageIdentityAdapter.HasPackageIdentity)
+        {
+            // In unpackaged mode, we can't unlock limited access features
+            // Create a dummy result - actual implementation will handle the failure
+            return default;
+        }
+
         return Windows.ApplicationModel.LimitedAccessFeatures.TryUnlockFeature(featureId, GetToken(featureId), GetAttestation(featureId));
     }
 

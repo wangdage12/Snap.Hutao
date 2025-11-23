@@ -45,6 +45,7 @@ internal sealed class GameProcessFactory
         string gameFilePath = context.FileSystem.GameFilePath;
         string gameDirectory = context.FileSystem.GameDirectory;
 
+        // ProcessFactory.CreateUsingFullTrustSuspended will automatically fallback to normal mode if FullTrust.exe is missing
         return launchOptions.IsIslandEnabled.Value
             ? ProcessFactory.CreateUsingFullTrustSuspended(commandLine, gameFilePath, gameDirectory)
             : ProcessFactory.CreateUsingShellExecuteRunAs(commandLine, gameFilePath, gameDirectory);

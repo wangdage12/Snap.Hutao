@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
@@ -47,12 +47,18 @@
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <PackageCertificateKeyFile>Snap.Hutao_TemporaryKey.pfx</PackageCertificateKeyFile>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+	  <!-- 关闭AppX打包 -->
+	  <AppxPackage>false</AppxPackage>
+	  <!-- 不设置打包类型 -->
+	  <WindowsPackageType>None</WindowsPackageType>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Package.appxmanifest" />
+    <None Remove="Package.development.appxmanifest" />
+  </ItemGroup>
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
-    <AppxManifest Include="Package.appxmanifest" Condition="'$(ConfigurationName)'!='Debug'" />
-    <AppxManifest Include="Package.development.appxmanifest" Condition="'$(ConfigurationName)'=='Debug'" />
   </ItemGroup>
 
   <Target Name="DeleteLibsAfterBuild" AfterTargets="Build">
@@ -241,15 +247,15 @@
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251105-build.1544" />
     <PackageReference Include="CommunityToolkit.WinUI.Converters" Version="8.2.251105-build.1544" />
     <PackageReference Include="CommunityToolkit.WinUI.Media" Version="8.2.251105-build.1544" />
-    <PackageReference Include="Google.Protobuf" Version="3.33.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.33.1" />
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.14.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="5.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -265,16 +271,12 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.13.22" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.3.0-prerelease.251015.2" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.6901" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7175" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" />
     <PackageReference Include="QRCoder" Version="1.7.0" />
     <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.15.1" />
     <PackageReference Include="Sentry.Extensions.Logging" Version="5.16.2" />
     <PackageReference Include="Snap.HPatch" Version="0.0.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Snap.Hutao.Deployment.Runtime" Version="2.5.12">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

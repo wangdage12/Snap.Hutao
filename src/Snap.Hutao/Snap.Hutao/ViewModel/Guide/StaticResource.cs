@@ -105,7 +105,7 @@ internal static class StaticResource
 
         foreach ((string key, object value) in map)
         {
-            if ((int)value < (int)LatestResourceVersionMap[key])
+            if (Convert.ToInt32(value) < Convert.ToInt32(LatestResourceVersionMap[key]))
             {
                 return true;
             }
@@ -120,7 +120,7 @@ internal static class StaticResource
         ApplicationDataCompositeValue map = LocalSetting.Get(ContractMap, DefaultResourceVersionMap);
         foreach ((string key, object value) in LatestResourceVersionMap)
         {
-            if (!map.TryGetValue(key, out object current) || (int)value > (int)current)
+            if (!map.TryGetValue(key, out object current) || Convert.ToInt32(value) > Convert.ToInt32(current))
             {
                 result.Add(key);
             }

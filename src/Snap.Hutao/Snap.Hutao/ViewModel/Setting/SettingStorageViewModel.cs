@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.Windows.AppLifecycle;
 using Snap.Hutao.Core;
+using Snap.Hutao.Core.ApplicationModel;
 using Snap.Hutao.Core.Caching;
 using Snap.Hutao.Core.Logging;
 using Snap.Hutao.Core.Setting;
@@ -135,7 +136,18 @@ internal sealed partial class SettingStorageViewModel : Abstraction.ViewModel
         // TODO: prompt user that restart will be non-elevated
         try
         {
-            AppInstance.Restart(string.Empty);
+            if (PackageIdentityAdapter.HasPackageIdentity)
+            {
+                AppInstance.Restart(string.Empty);
+            }
+            else
+            {
+                // Unpackaged: manually restart the process
+                string exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName 
+                    ?? throw new InvalidOperationException("Cannot get process path");
+                System.Diagnostics.Process.Start(exePath);
+                Snap.Hutao.Factory.Process.ProcessFactory.KillCurrent();
+            }
         }
         catch (COMException ex)
         {

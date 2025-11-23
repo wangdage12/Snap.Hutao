@@ -1,0 +1,22 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+	<PropertyGroup>
+		<SuppressIces>ICE03;ICE60</SuppressIces>
+		<Platform>x64</Platform>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Snap.Hutao\Snap.Hutao.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<HarvestDirectory Include="..\Snap.Hutao\bin\x64\Release\net10.0-windows10.0.26100.0\win-x64">
+			<ComponentGroupName>MainAppComponents</ComponentGroupName>
+			<DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
+			<SuppressCom>true</SuppressCom>
+			<SuppressRegistry>true</SuppressRegistry>
+			<SuppressRootDirectory>true</SuppressRootDirectory>
+		</HarvestDirectory>
+
+		<PackageReference Include="WixToolset.Heat" Version="4.0.1" />
+	</ItemGroup>
+</Project>

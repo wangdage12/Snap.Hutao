@@ -25,3 +25,5 @@ src/Snap.Hutao/Snap.Hutao/Generated Files/
 tools/
 
 src/Snap.Hutao/Snap.Hutao/AppPackages
+/src/Snap.Hutao/Snap.Hutao.Installer/obj
+/src/Snap.Hutao/Snap.Hutao.Installer/bin/x64/Release/en-US

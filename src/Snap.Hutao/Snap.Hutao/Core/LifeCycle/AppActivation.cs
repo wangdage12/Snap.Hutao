@@ -74,8 +74,15 @@ internal sealed partial class AppActivation : IAppActivation, IAppActivationActi
 
     public void ActivateAndInitialize(HutaoActivationArguments args)
     {
+        #if DEBUG
+        Debug.WriteLine("[AppActivation] ActivateAndInitialize called");
+        #endif
+
         if (Volatile.Read(ref isActivating) is 1)
         {
+            #if DEBUG
+            Debug.WriteLine("[AppActivation] Already activating, returning");
+            #endif
             return;
         }
 
@@ -85,21 +92,52 @@ internal sealed partial class AppActivation : IAppActivation, IAppActivationActi
         {
             try
             {
+                #if DEBUG
+                Debug.WriteLine("[AppActivation] Starting activation process");
+                #endif
+
                 using (await activateLock.LockAsync().ConfigureAwait(false))
                 {
                     if (Interlocked.CompareExchange(ref isActivating, 1, 0) is not 0)
                     {
+                        #if DEBUG
+                        Debug.WriteLine("[AppActivation] Race condition detected, returning");
+                        #endif
                         return;
                     }
 
+                    #if DEBUG
+                    Debug.WriteLine("[AppActivation] Calling UnsynchronizedHandleActivationAsync");
+                    #endif
+
                     await UnsynchronizedHandleActivationAsync(args).ConfigureAwait(false);
+                    
+                    #if DEBUG
+                    Debug.WriteLine("[AppActivation] Calling UnsynchronizedHandleInitializationAsync");
+                    #endif
+
                     await UnsynchronizedHandleInitializationAsync().ConfigureAwait(false);
+                    
+                    #if DEBUG
+                    Debug.WriteLine("[AppActivation] Initialization completed successfully");
+                    #endif
                 }
+            }
+            catch (Exception ex)
+            {
+                #if DEBUG
+                Debug.WriteLine($"[AppActivation] Exception during activation: {ex}");
+                #endif
+                throw;
             }
             finally
             {
                 XamlApplicationLifetime.ActivationAndInitializationCompleted = true;
                 Interlocked.Exchange(ref isActivating, 0);
+                
+                #if DEBUG
+                Debug.WriteLine("[AppActivation] ActivationAndInitializationCompleted set to true");
+                #endif
             }
         }
     }
@@ -313,16 +351,36 @@ internal sealed partial class AppActivation : IAppActivation, IAppActivationActi
     private async ValueTask<Window?> WaitWindowAsync<TWindow>()
         where TWindow : Window
     {
+        #if DEBUG
+        Debug.WriteLine($"[AppActivation.WaitWindowAsync] Waiting for window type: {typeof(TWindow).Name}");
+        #endif
+
         await taskContext.SwitchToMainThreadAsync();
+
+        #if DEBUG
+        Debug.WriteLine("[AppActivation.WaitWindowAsync] Switched to main thread");
+        #endif
 
         if (currentXamlWindowReference.Window is not { } window)
         {
+            #if DEBUG
+            Debug.WriteLine("[AppActivation.WaitWindowAsync] Creating new window instance");
+            #endif
+
             try
             {
                 window = serviceProvider.GetRequiredService<TWindow>();
+                
+                #if DEBUG
+                Debug.WriteLine($"[AppActivation.WaitWindowAsync] Window created successfully: {window.GetType().Name}");
+                #endif
             }
-            catch (COMException)
+            catch (COMException ex)
             {
+                #if DEBUG
+                Debug.WriteLine($"[AppActivation.WaitWindowAsync] COMException: {ex}");
+                #endif
+
                 if (XamlApplicationLifetime.Exiting)
                 {
                     return default;
@@ -330,11 +388,33 @@ internal sealed partial class AppActivation : IAppActivation, IAppActivationActi
 
                 throw;
             }
+            catch (Exception ex)
+            {
+                #if DEBUG
+                Debug.WriteLine($"[AppActivation.WaitWindowAsync] Exception creating window: {ex}");
+                #endif
+                throw;
+            }
 
             currentXamlWindowReference.Window = window;
         }
+        else
+        {
+            #if DEBUG
+            Debug.WriteLine($"[AppActivation.WaitWindowAsync] Using existing window: {window.GetType().Name}");
+            #endif
+        }
+
+        #if DEBUG
+        Debug.WriteLine("[AppActivation.WaitWindowAsync] Calling window.SwitchTo()");
+        #endif
 
         window.SwitchTo();
+        
+        #if DEBUG
+        Debug.WriteLine("[AppActivation.WaitWindowAsync] Window activated");
+        #endif
+
         window.AppWindow?.MoveInZOrderAtTop();
         return window;
     }

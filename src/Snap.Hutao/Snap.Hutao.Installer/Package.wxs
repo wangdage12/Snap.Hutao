@@ -1,0 +1,41 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Package Name="Snap.Hutao"
+			 Manufacturer="Millennium Science Technology R-D Inst"
+			 Version="1.0.0.0"
+			 UpgradeCode="121203be-60cb-408f-92cc-7080f6598e68"
+			 Scope="perMachine">
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate EmbedCab="yes" />
+
+		<Feature Id="ProductFeature" Title="Snap.Hutao" Level="1">
+			<ComponentGroupRef Id="MainAppComponents" />
+			<ComponentRef Id="ApplicationShortcut" />
+		</Feature>
+	</Package>
+
+	<Fragment>
+		<StandardDirectory Id="ProgramFiles64Folder">
+			<Directory Id="INSTALLFOLDER" Name="Snap.Hutao" />
+		</StandardDirectory>
+
+		<StandardDirectory Id="ProgramMenuFolder">
+			<Directory Id="ApplicationProgramsFolder" Name="Snap Hutao" />
+		</StandardDirectory>
+	</Fragment>
+
+	<Fragment>
+		<Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder" Guid="*">
+
+			<Shortcut Id="ApplicationStartMenuShortcut"
+					  Name="Snap Hutao"
+					  Description="Snap Hutao Client"
+					  Target="[INSTALLFOLDER]Snap.Hutao.exe"
+					  WorkingDirectory="INSTALLFOLDER" />
+
+			<RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall" />
+
+			<RegistryValue Root="HKCU" Key="Software\Snap.Hutao" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+		</Component>
+	</Fragment>
+</Wix>

@@ -77,21 +77,47 @@ internal sealed class GameIslandInterop : IGameIslandInterop
             {
                 nint handle = accessor.SafeMemoryMappedViewHandle.DangerousGetHandle();
                 InitializeIslandEnvironment(handle, context.LaunchOptions, context.IsOversea);
+                
                 if (!resume)
                 {
-                    if (context.Process is not FullTrustProcess fullTrustProcess)
-                    {
-                        throw HutaoException.InvalidOperation("Process is not full trust");
-                    }
-
                     ArgumentException.ThrowIfNullOrEmpty(islandPath);
                     if (!File.Exists(islandPath))
                     {
                         throw HutaoException.InvalidOperation(SH.ServiceGameIslandTargetVersionFileNotExists);
                     }
 
-                    fullTrustProcess.LoadLibrary(FullTrustLoadLibraryRequest.Create("Island", islandPath));
-                    fullTrustProcess.ResumeMainThread();
+                    // Support both FullTrust and normal admin mode
+                    if (context.Process is FullTrustProcess fullTrustProcess)
+                    {
+                        // Use FullTrust process for injection (suspended process)
+                        fullTrustProcess.LoadLibrary(FullTrustLoadLibraryRequest.Create("Island", islandPath));
+                        fullTrustProcess.ResumeMainThread();
+                    }
+                    else
+                    {
+                        // Use native injection for normal admin mode
+                        // The process was already started by CreateUsingShellExecuteRunAs
+                        // Just inject the DLL into the running process
+                        try
+                        {
+                            // Wait a bit for process to initialize
+                            // await Task.Delay(5000, token).ConfigureAwait(false);
+                            
+                            // Inject using RemoteThread
+                            DllInjectionUtilities.InjectUsingRemoteThread(islandPath, context.Process.Id);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log the injection failure but don't crash - game can still run
+                            SentrySdk.AddBreadcrumb(
+                                $"Island DLL injection failed: {ex.Message}",
+                                category: "island.injection",
+                                level: Sentry.BreadcrumbLevel.Error);
+                            
+                            // Re-throw to let the caller handle it
+                            throw HutaoException.Throw($"Island DLL 注入失败: {ex.Message}", ex);
+                        }
+                    }
                 }
 
                 await PeriodicUpdateIslandEnvironmentAsync(context, handle, token).ConfigureAwait(false);

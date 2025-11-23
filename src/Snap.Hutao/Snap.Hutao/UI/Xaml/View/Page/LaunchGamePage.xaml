@@ -553,7 +553,7 @@
                 </ScrollViewer>
             </PivotItem>
 
-            <PivotItem Header="{shuxm:ResourceString Name=ViewPageLaunchGameIslandOptionsHeader}"  IsEnabled="False">
+            <PivotItem Header="{shuxm:ResourceString Name=ViewPageLaunchGameIslandOptionsHeader}">
                 <Border
                     Margin="16"
                     Padding="0"
