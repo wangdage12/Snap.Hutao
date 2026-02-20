@@ -13,7 +13,9 @@ internal sealed class LaunchExecutionGameProcessStartHandler : AbstractLaunchExe
 {
     public override async ValueTask BeforeAsync(BeforeLaunchExecutionContext context)
     {
-        if (context.LaunchOptions.IsIslandEnabled.Value || !HutaoRuntime.IsProcessElevated)
+        // Island 注入已改为本地 nvd3dump.dll + 共享内存协议，不再依赖联网同步 ContentDelivery。
+        // 保持其他分支原有行为：仅在非提权启动时沿用仓库同步逻辑。
+        if (!context.LaunchOptions.IsIslandEnabled.Value && !HutaoRuntime.IsProcessElevated)
         {
             (bool result, _) = await context.ServiceProvider
                 .GetRequiredService<IGitRepositoryService>()

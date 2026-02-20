@@ -5,16 +5,11 @@ using Snap.Hutao.Win32.Foundation;
 
 namespace Snap.Hutao.Service.Game.Island;
 
-internal struct IslandEnvironment
+internal unsafe struct IslandEnvironment
 {
 #pragma warning disable CS0649
-    public IslandEnvironmentView View;
-    public int Reserved1;
-    public int Reserved2;
-    public int Reserved3;
-    public int Reserved4;
+    public fixed uint Reserved[19];
 #pragma warning restore CS0649
-    public BOOL IsOversea;
 
     public BOOL EnableSetFieldOfView;
     public float FieldOfView;
@@ -33,4 +28,5 @@ internal struct IslandEnvironment
     public BOOL ResinListItemId107009Allowed;
     public BOOL ResinListItemId107012Allowed;
     public BOOL ResinListItemId220007Allowed;
+    public BOOL HideUid;
 }

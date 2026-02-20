@@ -7,11 +7,8 @@ using Snap.Hutao.Core.ExceptionService;
 using Snap.Hutao.Core.LifeCycle.InterProcess.FullTrust;
 using Snap.Hutao.Core.Setting;
 using Snap.Hutao.Factory.Process;
-using Snap.Hutao.Service.Game.FileSystem;
 using Snap.Hutao.Service.Game.Launching.Context;
-using Snap.Hutao.Web.Hutao;
-using Snap.Hutao.Web.Hutao.Response;
-using Snap.Hutao.Web.Response;
+using Snap.Hutao.Win32.Foundation;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using Windows.Devices.Input;
@@ -21,12 +18,25 @@ namespace Snap.Hutao.Service.Game.Island;
 internal sealed class GameIslandInterop : IGameIslandInterop
 {
     private const string IslandEnvironmentName = "4F3E8543-40F7-4808-82DC-21E48A6037A7";
+    private const string IslandLibraryName = "nvd3dump.dll";
+
+    private static ReadOnlySpan<uint> EnvironmentReservedSignature
+    {
+        get
+        {
+            return
+            [
+                0x01560EC0, 0x15B73330, 0x0106A3C0, 0x0106A3B0, 0x0C835B70,
+                0x0608D620, 0x00406330, 0x071A6EE0, 0x0E47E1B0, 0x0E4851E0,
+                0x0FEAFC10, 0x069EA500, 0x09199950, 0x0A98F410, 0x01063C50,
+                0x01063450, 0x0FA87490, 0x1084E9E0, 0x105C2C10,
+            ];
+        }
+    }
 
     private readonly bool resume;
 
     private string? islandPath;
-    private int accumulatedBadStateCount;
-    private uint previousUid;
 
     public GameIslandInterop(bool resume)
     {
@@ -40,13 +50,7 @@ internal sealed class GameIslandInterop : IGameIslandInterop
             return ValueTask.CompletedTask;
         }
 
-        if (!context.FileSystem.TryGetGameVersion(out string? gameVersion))
-        {
-            throw HutaoException.NotSupported(SH.ServiceGameIslandFileSystemGetGameVersionFailed);
-        }
-
-        string repoPath = Path.Combine(HutaoRuntime.GetDataRepositoryDirectory(), "Snap.ContentDelivery");
-        islandPath = Path.Combine(repoPath, $"Snap.Hutao.UnlockerIsland_{gameVersion}.dll");
+        islandPath = Path.Combine(AppContext.BaseDirectory, IslandLibraryName);
         return ValueTask.CompletedTask;
     }
 
@@ -61,8 +65,6 @@ internal sealed class GameIslandInterop : IGameIslandInterop
             }
             catch (FileNotFoundException)
             {
-                // https://github.com/DGP-Studio/Snap.Hutao/issues/2540
-                // Simply return if the game is running without island injected previously
                 return;
             }
         }
@@ -76,46 +78,34 @@ internal sealed class GameIslandInterop : IGameIslandInterop
             using (MemoryMappedViewAccessor accessor = file.CreateViewAccessor())
             {
                 nint handle = accessor.SafeMemoryMappedViewHandle.DangerousGetHandle();
-                InitializeIslandEnvironment(handle, context.LaunchOptions, context.IsOversea);
-                
+                InitializeIslandEnvironment(handle, context.LaunchOptions);
+
                 if (!resume)
                 {
                     ArgumentException.ThrowIfNullOrEmpty(islandPath);
                     if (!File.Exists(islandPath))
                     {
-                        throw HutaoException.InvalidOperation(SH.ServiceGameIslandTargetVersionFileNotExists);
+                        throw HutaoException.InvalidOperation($"未找到 {IslandLibraryName}，请将该文件放置在程序目录后重试。路径: {islandPath}");
                     }
 
-                    // Support both FullTrust and normal admin mode
                     if (context.Process is FullTrustProcess fullTrustProcess)
                     {
-                        // Use FullTrust process for injection (suspended process)
                         fullTrustProcess.LoadLibrary(FullTrustLoadLibraryRequest.Create("Island", islandPath));
                         fullTrustProcess.ResumeMainThread();
                     }
                     else
                     {
-                        // Use native injection for normal admin mode
-                        // The process was already started by CreateUsingShellExecuteRunAs
-                        // Just inject the DLL into the running process
                         try
                         {
-                            // Wait a bit for process to initialize
-                            // await Task.Delay(500, token).ConfigureAwait(false);
-                            // ⚠️此处需要更多调查
-                            
-                            // Inject using RemoteThread
                             DllInjectionUtilities.InjectUsingRemoteThread(islandPath, context.Process.Id);
                         }
                         catch (Exception ex)
                         {
-                            // Log the injection failure but don't crash - game can still run
                             SentrySdk.AddBreadcrumb(
                                 $"Island DLL injection failed: {ex.Message}",
                                 category: "island.injection",
                                 level: Sentry.BreadcrumbLevel.Error);
-                            
-                            // Re-throw to let the caller handle it
+
                             throw HutaoException.Throw($"Island DLL 注入失败: {ex.Message}", ex);
                         }
                     }
@@ -126,25 +116,16 @@ internal sealed class GameIslandInterop : IGameIslandInterop
         }
     }
 
-    private static unsafe void InitializeIslandEnvironment(nint handle, LaunchOptions options, bool isOversea)
+    private static unsafe void InitializeIslandEnvironment(nint handle, LaunchOptions options)
     {
         IslandEnvironment* pIslandEnvironment = (IslandEnvironment*)handle;
 
-        pIslandEnvironment->IsOversea = isOversea;
-
-        if (LocalSetting.Get(SettingKeys.LaunchForceUsingTouchScreen, false))
-        {
-            pIslandEnvironment->UsingTouchScreen = IsIntegratedTouchPresent();
-        }
-        else
-        {
-            pIslandEnvironment->UsingTouchScreen = options.UsingTouchScreen.Value;
-        }
+        EnvironmentReservedSignature.CopyTo(new Span<uint>(pIslandEnvironment->Reserved, 19));
 
         UpdateIslandEnvironment(handle, options);
     }
 
-    private static unsafe IslandEnvironmentView UpdateIslandEnvironment(nint handle, LaunchOptions options)
+    private static unsafe void UpdateIslandEnvironment(nint handle, LaunchOptions options)
     {
         IslandEnvironment* pIslandEnvironment = (IslandEnvironment*)handle;
 
@@ -165,15 +146,22 @@ internal sealed class GameIslandInterop : IGameIslandInterop
         pIslandEnvironment->ResinListItemId107012Allowed = options.ResinListItemId107012Allowed.Value;
         pIslandEnvironment->ResinListItemId220007Allowed = options.ResinListItemId220007Allowed.Value;
 
-        return pIslandEnvironment->View;
+        pIslandEnvironment->HideUid = BOOL.FALSE;
+
+        if (LocalSetting.Get(SettingKeys.LaunchForceUsingTouchScreen, false))
+        {
+            pIslandEnvironment->UsingTouchScreen = IsIntegratedTouchPresent();
+        }
+        else
+        {
+            pIslandEnvironment->UsingTouchScreen = options.UsingTouchScreen.Value;
+        }
     }
 
     private static bool IsIntegratedTouchPresent()
     {
         IReadOnlyList<PointerDevice> devices = PointerDevice.GetPointerDevices();
 
-        // ReSharper disable once ForCanBeConvertedToForeach
-        // https://github.com/microsoft/CsWinRT/issues/747
         for (int i = 0; i < devices.Count; i++)
         {
             PointerDevice device = devices[i];
@@ -184,22 +172,6 @@ internal sealed class GameIslandInterop : IGameIslandInterop
         }
 
         return false;
-    }
-
-    private static async ValueTask HandleUidChangedAsync(LaunchExecutionContext context, uint uid, CancellationToken token)
-    {
-        using (IServiceScope scope = context.ServiceProvider.CreateScope())
-        {
-            HutaoResponse response = await scope.ServiceProvider
-                .GetRequiredService<HutaoInfrastructureClient>()
-                .AmIBannedAsync($"{uid}", token)
-                .ConfigureAwait(false);
-
-            if (!ResponseValidator.TryValidate(response, context.ServiceProvider))
-            {
-                context.Process.Kill();
-            }
-        }
     }
 
     private async ValueTask PeriodicUpdateIslandEnvironmentAsync(LaunchExecutionContext context, nint handle, CancellationToken token)
@@ -213,31 +185,7 @@ internal sealed class GameIslandInterop : IGameIslandInterop
                     break;
                 }
 
-                IslandEnvironmentView view = UpdateIslandEnvironment(handle, context.LaunchOptions);
-                if (Interlocked.Exchange(ref previousUid, view.Uid) != view.Uid)
-                {
-                    await HandleUidChangedAsync(context, view.Uid, token).ConfigureAwait(false);
-                }
-
-                if (view.State is IslandState.None or IslandState.Stopped)
-                {
-                    if (Interlocked.Increment(ref accumulatedBadStateCount) >= 10)
-                    {
-                        HutaoException.Throw($"UnlockerIsland in bad state for too long, last state: {view.State}");
-                    }
-                }
-                else
-                {
-                    unsafe
-                    {
-                        if (view.State is IslandState.Started && view.Size < sizeof(IslandEnvironment))
-                        {
-                            HutaoException.Throw("IslandEnvironment size mismatch");
-                        }
-                    }
-
-                    Interlocked.Exchange(ref accumulatedBadStateCount, 0);
-                }
+                UpdateIslandEnvironment(handle, context.LaunchOptions);
             }
         }
     }
