@@ -1106,6 +1106,12 @@ Space Available: {2}</value>
   <data name="ServiceGameSetMultiChannelUnauthorizedAccess" xml:space="preserve">
     <value>Unable to read or save profile, please try again in administrator mode</value>
   </data>
+  <data name="ServiceGitRepositoryProbingMirror" xml:space="preserve">
+    <value>Probing metadata mirror</value>
+  </data>
+  <data name="ServiceGitRepositoryRetryingMirror" xml:space="preserve">
+    <value>Retrying metadata mirror</value>
+  </data>
   <data name="ServiceHutaoUserGachaLogExpiredAt" xml:space="preserve">
     <value>Wish record uploading service is valid until</value>
   </data>

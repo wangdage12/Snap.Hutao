@@ -1106,6 +1106,12 @@
   <data name="ServiceGameSetMultiChannelUnauthorizedAccess" xml:space="preserve">
     <value>無法讀取或儲存設定檔案，請用系統管理員模式重試</value>
   </data>
+  <data name="ServiceGitRepositoryProbingMirror" xml:space="preserve">
+    <value>檢查後設資料鏡像</value>
+  </data>
+  <data name="ServiceGitRepositoryRetryingMirror" xml:space="preserve">
+    <value>重試後設資料鏡像</value>
+  </data>
   <data name="ServiceHutaoUserGachaLogExpiredAt" xml:space="preserve">
     <value>祈願記錄上傳服務有效期限至</value>
   </data>

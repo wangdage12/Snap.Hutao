@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Core.DependencyInjection.Annotation.HttpClient;
 using Snap.Hutao.Core.Diagnostics;
 using Snap.Hutao.Core.ExceptionService;
+using Snap.Hutao.Core.IO;
 using Snap.Hutao.Service.Git;
 using System.Collections.Immutable;
 using System.IO;
@@ -16,7 +17,8 @@ namespace Snap.Hutao.Service.Metadata;
 [HttpClient(HttpClientConfiguration.Default)]
 internal sealed partial class MetadataService : IMetadataService
 {
-    private readonly TaskCompletionSource initializeCompletionSource = new();
+    private static readonly TimeSpan InitializationHardTimeout = TimeSpan.FromSeconds(15);
+    private readonly TaskCompletionSource initializeCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private readonly IGitRepositoryService gitRepositoryService;
     private readonly ILogger<MetadataService> logger;
@@ -38,15 +40,61 @@ internal sealed partial class MetadataService : IMetadataService
 
     public async ValueTask InitializeInternalAsync(CancellationToken token = default)
     {
-        if (isInitialized)
+        if (isInitialized || initializeCompletionSource.Task.IsCompleted)
         {
             return;
         }
 
         using (ValueStopwatch.MeasureExecution(logger))
         {
-            (isInitialized, _) = await gitRepositoryService.EnsureRepositoryAsync("Snap.Metadata").ConfigureAwait(false);
-            initializeCompletionSource.TrySetResult();
+            try
+            {
+                Task<ValueResult<bool, ValueDirectory>> ensureTask = gitRepositoryService.EnsureRepositoryAsync("Snap.Metadata").AsTask();
+                Task completedTask = await Task.WhenAny(ensureTask, Task.Delay(InitializationHardTimeout, token)).ConfigureAwait(false);
+
+                if (completedTask != ensureTask)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        isInitialized = false;
+                        logger.LogWarning("[Metadata] Initialization canceled");
+                        return;
+                    }
+
+                    isInitialized = false;
+                    logger.LogError("[Metadata] Initialization timed out after {TimeoutSeconds}s", InitializationHardTimeout.TotalSeconds);
+                    _ = ObserveEnsureRepositoryTaskAsync(ensureTask);
+                    return;
+                }
+
+                (isInitialized, _) = await ensureTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                isInitialized = false;
+                logger.LogWarning("[Metadata] Initialization canceled");
+            }
+            catch (Exception ex)
+            {
+                isInitialized = false;
+                logger.LogError(ex, "[Metadata] Initialization failed");
+            }
+            finally
+            {
+                initializeCompletionSource.TrySetResult();
+            }
+        }
+    }
+
+    private async Task ObserveEnsureRepositoryTaskAsync(Task<ValueResult<bool, ValueDirectory>> ensureTask)
+    {
+        try
+        {
+            await ensureTask.ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "[Metadata] Timed out initialization task completed with an exception later");
         }
     }
 

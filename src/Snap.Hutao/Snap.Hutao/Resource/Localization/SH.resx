@@ -1139,6 +1139,12 @@
   <data name="ServiceGitRepositoryOperationFailed" xml:space="preserve">
     <value>操作失败</value>
   </data>
+  <data name="ServiceGitRepositoryProbingMirror" xml:space="preserve">
+    <value>检查元数据镜像</value>
+  </data>
+  <data name="ServiceGitRepositoryRetryingMirror" xml:space="preserve">
+    <value>重试元数据镜像</value>
+  </data>
   <data name="ServiceGitRepositoryUpdatingExisting" xml:space="preserve">
     <value>检查元数据更新</value>
   </data>
