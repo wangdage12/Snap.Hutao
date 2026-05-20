@@ -1017,6 +1017,9 @@
   <data name="ServiceGameLaunchPhaseWaitingProcessExit" xml:space="preserve">
     <value>Waiting for the game process to close…</value>
   </data>
+  <data name="ServiceGameLaunchMonitorWindowsPrimary" xml:space="preserve">
+    <value>Windows primary monitor</value>
+  </data>
   <data name="ServiceGameLaunchingEnsureGameResourceShouldNotConvert" xml:space="preserve">
     <value>The target server matches the current local game resources, no conversion needed</value>
   </data>
@@ -2950,6 +2953,12 @@ Space Available: {2}</value>
   </data>
   <data name="ViewPageLaunchGameMonitorsDescription" xml:space="preserve">
     <value>Run the software on the selected monitor</value>
+  </data>
+  <data name="ViewPageLaunchGameUseCurrentMonitorResolutionDescription" xml:space="preserve">
+    <value>Read the resolution when launching. Uses the primary monitor when monitor selection is disabled, otherwise uses the selected monitor.</value>
+  </data>
+  <data name="ViewPageLaunchGameUseCurrentMonitorResolutionHeader" xml:space="preserve">
+    <value>Read screen resolution automatically</value>
   </data>
   <data name="ViewPageLaunchGameOptionsHeader" xml:space="preserve">
     <value>Game Options</value>

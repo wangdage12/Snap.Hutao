@@ -1017,6 +1017,9 @@
   <data name="ServiceGameLaunchPhaseWaitingProcessExit" xml:space="preserve">
     <value>等待遊戲程序退出</value>
   </data>
+  <data name="ServiceGameLaunchMonitorWindowsPrimary" xml:space="preserve">
+    <value>Windows 主要顯示器</value>
+  </data>
   <data name="ServiceGameLaunchingEnsureGameResourceShouldNotConvert" xml:space="preserve">
     <value>目標伺服器與目前遊戲資源匹配，無需轉換</value>
   </data>
@@ -2923,6 +2926,12 @@
   </data>
   <data name="ViewPageLaunchGameMonitorsDescription" xml:space="preserve">
     <value>在指定的顯示器上執行</value>
+  </data>
+  <data name="ViewPageLaunchGameUseCurrentMonitorResolutionDescription" xml:space="preserve">
+    <value>啟動時自動讀取解析度。未啟用顯示器指定時使用主要顯示器解析度；啟用後使用所選顯示器解析度。</value>
+  </data>
+  <data name="ViewPageLaunchGameUseCurrentMonitorResolutionHeader" xml:space="preserve">
+    <value>自動讀取螢幕解析度</value>
   </data>
   <data name="ViewPageLaunchGameOptionsHeader" xml:space="preserve">
     <value>遊戲選項</value>

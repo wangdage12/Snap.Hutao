@@ -108,6 +108,7 @@ internal static class SettingKeys
     public const string LaunchIsScreenHeightEnabled                      = "Snap::Hutao::Game::CommandLine::ScreenHeight::Enabled";
     public const string LaunchScreenWidth                                = "Snap::Hutao::Game::CommandLine::ScreenWidth";
     public const string LaunchIsScreenWidthEnabled                       = "Snap::Hutao::Game::CommandLine::ScreenWidth::Enabled";
+    public const string LaunchUseCurrentMonitorResolution                = "Snap::Hutao::Game::CommandLine::ScreenResolution::UseCurrentMonitor";
     public const string LaunchUsingStarwardPlayTimeStatistics            = "Snap::Hutao::Game::InterProcess::Starward::PlayTimeStatistics";
     public const string LaunchUsingBetterGenshinImpactAutomation         = "Snap::Hutao::Game::InterProcess::BetterGenshinImpact::Automation";
     public const string LaunchDisableShowDamageText                      = "Snap::Hutao::Game::Island::DamageText::Show";

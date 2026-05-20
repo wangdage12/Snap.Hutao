@@ -14,6 +14,9 @@ internal sealed class GameProcessFactory
     public static IProcess CreateForDefault(BeforeLaunchExecutionContext context)
     {
         LaunchOptions launchOptions = context.LaunchOptions;
+        (int launchScreenWidth, int launchScreenHeight) = launchOptions.GetLaunchScreenResolution();
+        int launchMonitorValue = launchOptions.GetLaunchMonitorValue();
+        bool useCurrentMonitorResolution = launchOptions.UseCurrentMonitorResolution.Value;
 
         string commandLine = string.Empty;
         if (launchOptions.AreCommandLineArgumentsEnabled.Value)
@@ -29,16 +32,16 @@ internal sealed class GameProcessFactory
                 .AppendIf(launchOptions.IsBorderless.Value, "-popupwindow")
                 .AppendIf(launchOptions.IsExclusive.Value, "-window-mode", "exclusive")
                 .Append("-screen-fullscreen", launchOptions.IsFullScreen.Value ? "1" : "0")
-                .AppendIf(launchOptions.IsScreenWidthEnabled.Value, "-screen-width", launchOptions.ScreenWidth.Value)
-                .AppendIf(launchOptions.IsScreenHeightEnabled.Value, "-screen-height", launchOptions.ScreenHeight.Value)
-                .AppendIf(launchOptions.IsMonitorEnabled.Value, "-monitor", launchOptions.Monitor.Value?.Value ?? 1)
+                .AppendIf(useCurrentMonitorResolution || launchOptions.IsScreenWidthEnabled.Value, "-screen-width", launchScreenWidth)
+                .AppendIf(useCurrentMonitorResolution || launchOptions.IsScreenHeightEnabled.Value, "-screen-height", launchScreenHeight)
+                .AppendIf(launchOptions.IsMonitorEnabled.Value, "-monitor", launchMonitorValue)
                 .AppendIf(launchOptions.IsPlatformTypeEnabled.Value, "-platform_type", $"{launchOptions.PlatformType.Value:G}")
                 .AppendIf(useAuthTicket, "login_auth_ticket", authTicket, CommandLineArgumentPrefix.Equal)
                 .ToString();
 
             context.TaskContext.InvokeOnMainThread(() =>
             {
-                launchOptions.AspectRatios.Add(new(launchOptions.ScreenWidth.Value, launchOptions.ScreenHeight.Value));
+                launchOptions.AspectRatios.Add(new(launchScreenWidth, launchScreenHeight));
             });
         }
 

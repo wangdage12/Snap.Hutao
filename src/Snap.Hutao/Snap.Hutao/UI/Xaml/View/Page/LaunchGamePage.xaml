@@ -479,6 +479,7 @@
                                                     <shuxc:SizeRestrictedContentControl Margin="0,0,130,0" VerticalAlignment="Center">
                                                         <ComboBox
                                                             MinWidth="{ThemeResource SettingsCardContentControlMinWidth2}"
+                                                            IsEnabled="{Binding LaunchOptions.IsAspectRatioSelectionEnabled.Value}"
                                                             ItemTemplateSelector="{StaticResource AspectRatioComboBoxTemplateSelector}"
                                                             ItemsSource="{Binding LaunchOptions.AspectRatios.Value}"
                                                             PlaceholderText="{shuxm:ResourceString Name=ViewPageLaunchGameAppearanceAspectRatioPlaceHolder}"
@@ -492,9 +493,12 @@
                                                             MinWidth="{ThemeResource SettingsCardContentControlMinWidth2}"
                                                             Padding="12,6,0,0"
                                                             VerticalAlignment="Center"
-                                                            IsEnabled="{Binding LaunchOptions.IsScreenWidthEnabled.Value}"
+                                                            IsEnabled="{Binding LaunchOptions.IsScreenWidthInputEnabled.Value}"
                                                             Value="{Binding LaunchOptions.ScreenWidth.Value, Mode=TwoWay}"/>
-                                                        <ToggleSwitch MinWidth="{ThemeResource SettingsCardContentControlMinWidth}" IsOn="{Binding LaunchOptions.IsScreenWidthEnabled.Value, Mode=TwoWay}"/>
+                                                        <ToggleSwitch
+                                                            MinWidth="{ThemeResource SettingsCardContentControlMinWidth}"
+                                                            IsEnabled="{Binding LaunchOptions.IsScreenWidthToggleEnabled.Value}"
+                                                            IsOn="{Binding LaunchOptions.IsScreenWidthEnabled.Value, Mode=TwoWay}"/>
                                                     </StackPanel>
                                                 </cwc:SettingsCard>
                                                 <cwc:SettingsCard Description="{shuxm:ResourceString Name=ViewPageLaunchGameAppearanceScreenHeightDescription}" Header="-screen-height">
@@ -503,9 +507,12 @@
                                                             MinWidth="{ThemeResource SettingsCardContentControlMinWidth2}"
                                                             Padding="12,6,0,0"
                                                             VerticalAlignment="Center"
-                                                            IsEnabled="{Binding LaunchOptions.IsScreenHeightEnabled.Value}"
+                                                            IsEnabled="{Binding LaunchOptions.IsScreenHeightInputEnabled.Value}"
                                                             Value="{Binding LaunchOptions.ScreenHeight.Value, Mode=TwoWay}"/>
-                                                        <ToggleSwitch MinWidth="{ThemeResource SettingsCardContentControlMinWidth}" IsOn="{Binding LaunchOptions.IsScreenHeightEnabled.Value, Mode=TwoWay}"/>
+                                                        <ToggleSwitch
+                                                            MinWidth="{ThemeResource SettingsCardContentControlMinWidth}"
+                                                            IsEnabled="{Binding LaunchOptions.IsScreenHeightToggleEnabled.Value}"
+                                                            IsOn="{Binding LaunchOptions.IsScreenHeightEnabled.Value, Mode=TwoWay}"/>
                                                     </StackPanel>
                                                 </cwc:SettingsCard>
                                                 <cwc:SettingsCard Description="{shuxm:ResourceString Name=ViewPageLaunchGameMonitorsDescription}" Header="-monitor">
@@ -524,6 +531,9 @@
                                                         </shuxc:SizeRestrictedContentControl>
                                                         <ToggleSwitch MinWidth="{ThemeResource SettingsCardContentControlMinWidth}" IsOn="{Binding LaunchOptions.IsMonitorEnabled.Value, Mode=TwoWay}"/>
                                                     </StackPanel>
+                                                </cwc:SettingsCard>
+                                                <cwc:SettingsCard Description="{shuxm:ResourceString Name=ViewPageLaunchGameUseCurrentMonitorResolutionDescription}" Header="{shuxm:ResourceString Name=ViewPageLaunchGameUseCurrentMonitorResolutionHeader}">
+                                                    <ToggleSwitch MinWidth="{ThemeResource SettingsCardContentControlMinWidth}" IsOn="{Binding LaunchOptions.UseCurrentMonitorResolution.Value, Mode=TwoWay}"/>
                                                 </cwc:SettingsCard>
                                             </cwc:SettingsExpander.Items>
                                         </cwc:SettingsExpander>
