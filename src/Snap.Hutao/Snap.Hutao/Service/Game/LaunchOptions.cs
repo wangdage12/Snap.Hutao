@@ -20,6 +20,8 @@ namespace Snap.Hutao.Service.Game;
 [Service(ServiceLifetime.Singleton)]
 internal sealed partial class LaunchOptions : DbStoreOptions, IRestrictedGamePathAccess
 {
+    private const int WindowsPrimaryMonitorValue = 0;
+
     [GeneratedConstructor(CallBaseConstructor = true)]
     public partial LaunchOptions(IServiceProvider serviceProvider);
 
@@ -65,12 +67,15 @@ internal sealed partial class LaunchOptions : DbStoreOptions, IRestrictedGamePat
     public IObservableProperty<int> ScreenHeight { get => field ??= CreateProperty(SettingKeys.LaunchScreenHeight, DisplayArea.Primary.OuterBounds.Height); }
 
     [field: MaybeNull]
+    public IObservableProperty<bool> UseTargetMonitorResolution { get => field ??= CreateProperty(SettingKeys.LaunchUseTargetMonitorResolution, false); }
+
+    [field: MaybeNull]
     public IObservableProperty<bool> IsMonitorEnabled { get => field ??= CreateProperty(SettingKeys.LaunchIsMonitorEnabled, true); }
 
     public ImmutableArray<NameValue<int>> Monitors { get; } = InitializeMonitors();
 
     [field: MaybeNull]
-    public IObservableProperty<NameValue<int>?> Monitor { get => field ??= CreatePropertyForSelectedOneBasedIndex(SettingKeys.LaunchMonitor, Monitors); }
+    public IObservableProperty<NameValue<int>?> Monitor { get => field ??= CreateProperty(SettingKeys.LaunchMonitor, 1).AsNameValue(Monitors); }
 
     [field: MaybeNull]
     public IObservableProperty<bool> IsPlatformTypeEnabled { get => field ??= CreateProperty(SettingKeys.LaunchIsPlatformTypeEnabled, false); }
@@ -162,9 +167,69 @@ internal sealed partial class LaunchOptions : DbStoreOptions, IRestrictedGamePat
     [field: MaybeNull]
     public IObservableProperty<bool> UsingOverlay { get => field ??= CreateProperty(SettingKeys.LaunchUsingOverlay, false); }
 
+    public (int Width, int Height) GetLaunchScreenResolution()
+    {
+        if (!UseTargetMonitorResolution.Value)
+        {
+            return (ScreenWidth.Value, ScreenHeight.Value);
+        }
+
+        DisplayArea displayArea = ResolveLaunchDisplayArea();
+        return (displayArea.OuterBounds.Width, displayArea.OuterBounds.Height);
+    }
+
+    public int GetLaunchMonitorValue()
+    {
+        if (Monitor.Value?.Value is not WindowsPrimaryMonitorValue)
+        {
+            return Monitor.Value?.Value ?? 1;
+        }
+
+        try
+        {
+            IReadOnlyList<DisplayArea> displayAreas = DisplayArea.FindAll();
+            ulong primaryDisplayId = DisplayArea.Primary.DisplayId.Value;
+            for (int i = 0; i < displayAreas.Count; i++)
+            {
+                if (displayAreas[i].DisplayId.Value == primaryDisplayId)
+                {
+                    return i + 1;
+                }
+            }
+        }
+        catch
+        {
+        }
+
+        return 1;
+    }
+
     private static int InitializeTargetFpsWithScreenFps()
     {
         return HutaoNative.Instance.MakeDeviceCapabilities().GetPrimaryScreenVerticalRefreshRate();
+    }
+
+    private DisplayArea ResolveLaunchDisplayArea()
+    {
+        if (!IsMonitorEnabled.Value)
+        {
+            return DisplayArea.Primary;
+        }
+
+        try
+        {
+            IReadOnlyList<DisplayArea> displayAreas = DisplayArea.FindAll();
+            int selectedIndex = Math.Max(GetLaunchMonitorValue() - 1, 0);
+            if ((uint)selectedIndex < (uint)displayAreas.Count)
+            {
+                return displayAreas[selectedIndex];
+            }
+        }
+        catch
+        {
+        }
+
+        return DisplayArea.Primary;
     }
 
     private static void OnTargetFpsChanged(int newFps)
@@ -262,6 +327,8 @@ internal sealed partial class LaunchOptions : DbStoreOptions, IRestrictedGamePat
     private static ImmutableArray<NameValue<int>> InitializeMonitors()
     {
         ImmutableArray<NameValue<int>>.Builder monitors = ImmutableArray.CreateBuilder<NameValue<int>>();
+        monitors.Add(new(SH.ServiceGameLaunchMonitorWindowsPrimary, WindowsPrimaryMonitorValue));
+
         try
         {
             // This list can't use foreach
@@ -276,7 +343,6 @@ internal sealed partial class LaunchOptions : DbStoreOptions, IRestrictedGamePat
         }
         catch
         {
-            monitors.Clear();
         }
 
         return monitors.ToImmutable();

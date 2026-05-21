@@ -525,6 +525,9 @@
                                                         <ToggleSwitch MinWidth="{ThemeResource SettingsCardContentControlMinWidth}" IsOn="{Binding LaunchOptions.IsMonitorEnabled.Value, Mode=TwoWay}"/>
                                                     </StackPanel>
                                                 </cwc:SettingsCard>
+                                                <cwc:SettingsCard Description="{shuxm:ResourceString Name=ViewPageLaunchGameUseTargetMonitorResolutionDescription}" Header="{shuxm:ResourceString Name=ViewPageLaunchGameUseTargetMonitorResolutionHeader}">
+                                                    <ToggleSwitch MinWidth="{ThemeResource SettingsCardContentControlMinWidth}" IsOn="{Binding LaunchOptions.UseTargetMonitorResolution.Value, Mode=TwoWay}"/>
+                                                </cwc:SettingsCard>
                                             </cwc:SettingsExpander.Items>
                                         </cwc:SettingsExpander>
                                     </ScrollViewer>
