@@ -13,6 +13,8 @@ using Snap.Hutao.Web.Hutao.Response;
 using Snap.Hutao.Web.Response;
 using System.Collections.Immutable;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Snap.Hutao.Service.Git;
 
@@ -24,6 +26,10 @@ internal sealed partial class GitRepositoryService : IGitRepositoryService
     private readonly ILogger<GitRepositoryService> logger;
     private readonly IServiceProvider serviceProvider;
     private readonly ITaskContext taskContext;
+    private static readonly TimeSpan MirrorListRequestTimeout = TimeSpan.FromSeconds(6);
+    private static readonly TimeSpan MirrorProbeConnectTimeout = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan MirrorProbeRequestTimeout = TimeSpan.FromSeconds(6);
+    private const int MirrorListMaxAttempts = 3;
 
     [GeneratedConstructor]
     public partial GitRepositoryService(IServiceProvider serviceProvider);
@@ -47,28 +53,37 @@ internal sealed partial class GitRepositoryService : IGitRepositoryService
         using (await repoLock.LockAsync(name).ConfigureAwait(false))
         {
             ImmutableArray<GitRepository> infos;
-            using (IServiceScope scope = serviceProvider.CreateScope())
-            {
-                HutaoInfrastructureClient infrastructureClient = scope.ServiceProvider.GetRequiredService<HutaoInfrastructureClient>();
-                HutaoResponse<ImmutableArray<GitRepository>> response = await infrastructureClient.GetGitRepositoryAsync(name).ConfigureAwait(false);
-                if (!ResponseValidator.TryValidate(response, scope.ServiceProvider, out infos))
-                {
-                    return new(false, default);
-                }
-            }
-
             string directory = Path.GetFullPath(Path.Combine(HutaoRuntime.GetDataRepositoryDirectory(), name));
             BackgroundActivity.BackgroundActivity activity = GetActivityByName(name);
+
+            await activity.NotifyAsync(taskContext).ConfigureAwait(false);
+            await activity.UpdateAsync(taskContext, SH.ServiceGitRepositoryFetchingMirrorList, false, false, false, true).ConfigureAwait(false);
+
+            using (IServiceScope scope = serviceProvider.CreateScope())
+            {
+                ImmutableArray<GitRepository>? fetchedInfos = await TryGetRepositoryInfosAsync(scope.ServiceProvider, name).ConfigureAwait(false);
+                if (fetchedInfos is not { } validInfos)
+                {
+                    await activity.UpdateAsync(taskContext, SH.ServiceGitRepositoryOperationFailed, false, true, false, false).ConfigureAwait(false);
+                    return new(false, default);
+                }
+
+                infos = validInfos;
+            }
 
             bool failed = false;
             List<Exception> exceptions = [];
             try
             {
-                await activity.NotifyAsync(taskContext).ConfigureAwait(false);
                 await activity.UpdateAsync(taskContext, SH.ServiceBackgroundActivityDefaultDescription, false, false, false, false).ConfigureAwait(false);
 
                 foreach (GitRepository info in RepositoryAffinity.Sort(infos))
                 {
+                    if (!await ProbeRepositoryAsync(activity, info).ConfigureAwait(false))
+                    {
+                        continue;
+                    }
+
                     try
                     {
                         try
@@ -105,6 +120,99 @@ internal sealed partial class GitRepositoryService : IGitRepositoryService
             await activity.NotifyAsync(taskContext).ConfigureAwait(false);
             await activity.UpdateAsync(taskContext, SH.ServiceGitRepositoryOperationFailed, false, true, false, false).ConfigureAwait(false);
             throw new GitRepositoryException(SH.ServiceGitRepositoryOperationFailed, exceptions);
+        }
+    }
+
+    private async ValueTask<ImmutableArray<GitRepository>?> TryGetRepositoryInfosAsync(IServiceProvider scopedServiceProvider, string name)
+    {
+        HutaoInfrastructureClient infrastructureClient = scopedServiceProvider.GetRequiredService<HutaoInfrastructureClient>();
+
+        for (int attempt = 1; attempt <= MirrorListMaxAttempts; attempt++)
+        {
+            try
+            {
+                using CancellationTokenSource timeoutCts = new(MirrorListRequestTimeout);
+                HutaoResponse<ImmutableArray<GitRepository>> response = await infrastructureClient.GetGitRepositoryAsync(name, timeoutCts.Token).ConfigureAwait(false);
+
+                if (ResponseValidator.TryValidateWithoutUINotification(response, scopedServiceProvider, out ImmutableArray<GitRepository> infos))
+                {
+                    if (attempt > 1)
+                    {
+                        logger.LogInformation("[Metadata] Repository mirror list recovered: Name={Name}, Attempt={Attempt}", name, attempt);
+                    }
+
+                    return infos;
+                }
+
+                logger.LogWarning("[Metadata] Repository mirror list request returned invalid response: Name={Name}, Attempt={Attempt}/{MaxAttempts}, ReturnCode={ReturnCode}, Message={Message}",
+                    name,
+                    attempt,
+                    MirrorListMaxAttempts,
+                    response.ReturnCode,
+                    response.Message);
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogWarning(ex, "[Metadata] Repository mirror list request timed out: Name={Name}, Attempt={Attempt}/{MaxAttempts}, RequestTimeout={RequestTimeout}s",
+                    name,
+                    attempt,
+                    MirrorListMaxAttempts,
+                    MirrorListRequestTimeout.TotalSeconds);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "[Metadata] Repository mirror list request failed: Name={Name}, Attempt={Attempt}/{MaxAttempts}",
+                    name,
+                    attempt,
+                    MirrorListMaxAttempts);
+            }
+        }
+
+        logger.LogError("[Metadata] Repository mirror list request exhausted retries: Name={Name}, Attempts={Attempts}", name, MirrorListMaxAttempts);
+        return default;
+    }
+
+    private async ValueTask<bool> ProbeRepositoryAsync(BackgroundActivity.BackgroundActivity activity, GitRepository info)
+    {
+        string probeUrl = $"{info.HttpsUrl.OriginalString.TrimEnd('/')}/info/refs?service=git-upload-pack";
+        logger.LogInformation("[Metadata] Probing repository mirror: Url={Url}", probeUrl);
+        activity.Update(taskContext, $"{SH.ServiceGitRepositoryProbingMirror}: {info.Name}", false, false, false, true);
+
+        try
+        {
+            using SocketsHttpHandler handler = new()
+            {
+                UseProxy = true,
+                Proxy = HttpProxyUsingSystemProxy.Instance,
+                ConnectTimeout = MirrorProbeConnectTimeout,
+            };
+
+            using HttpClient client = new(handler)
+            {
+                Timeout = MirrorProbeRequestTimeout,
+            };
+
+            using HttpRequestMessage request = new(HttpMethod.Get, probeUrl);
+            if (!string.IsNullOrEmpty(info.Token))
+            {
+                string credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{info.Username}:{info.Token}"));
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+            }
+
+            using HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogWarning("[Metadata] Repository mirror probe failed: Url={Url}, StatusCode={StatusCode}", probeUrl, (int)response.StatusCode);
+                return false;
+            }
+
+            logger.LogInformation("[Metadata] Repository mirror probe succeeded: Url={Url}", probeUrl);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "[Metadata] Repository mirror probe failed: Url={Url}", probeUrl);
+            return false;
         }
     }
 
