@@ -210,6 +210,73 @@
                         </Border>
                     </Border>
 
+                    <!--  网络代理  -->
+                    <Border cw:Effects.Shadow="{ThemeResource CompatCardShadow}" DataContext="{Binding Proxy}">
+                        <Border Padding="16" Style="{ThemeResource AcrylicBorderCardStyle}">
+                            <StackPanel Spacing="{ThemeResource SettingsCardSpacing}">
+                                <TextBlock Style="{StaticResource SettingsCardHeaderTextBlockStyle}" Text="{shuxm:ResourceString Name=ViewPageSettingProxyHeader}"/>
+                                <cwc:SettingsCard
+                                    Description="{shuxm:ResourceString Name=ViewPageSettingProxyEnabledDescription}"
+                                    Header="{shuxm:ResourceString Name=ViewPageSettingProxyEnabledHeader}"
+                                    HeaderIcon="{shuxm:FontIcon Glyph=&#xE774;}">
+                                    <ToggleSwitch
+                                        MinWidth="120"
+                                        VerticalAlignment="Center"
+                                        IsOn="{Binding AppOptions.ProxyEnabled.Value, Mode=TwoWay}"/>
+                                </cwc:SettingsCard>
+                                <cwc:SettingsCard
+                                    Description="{shuxm:ResourceString Name=ViewPageSettingProxyTypeDescription}"
+                                    Header="{shuxm:ResourceString Name=ViewPageSettingProxyTypeHeader}"
+                                    HeaderIcon="{shuxm:FontIcon Glyph=&#xE968;}">
+                                    <shuxc:SizeRestrictedContentControl>
+                                        <ComboBox
+                                            DisplayMemberPath="Name"
+                                            ItemsSource="{Binding AppOptions.ProxyTypes}"
+                                            SelectedItem="{Binding SelectedProxyType, Mode=TwoWay}"/>
+                                    </shuxc:SizeRestrictedContentControl>
+                                </cwc:SettingsCard>
+                                <cwc:SettingsCard
+                                    Description="{shuxm:ResourceString Name=ViewPageSettingProxyAddressDescription}"
+                                    Header="{shuxm:ResourceString Name=ViewPageSettingProxyAddressHeader}"
+                                    HeaderIcon="{shuxm:FontIcon Glyph=&#xE71B;}">
+                                    <TextBox
+                                        MinWidth="{ThemeResource SettingsCardContentControlMinWidth}"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding AppOptions.ProxyAddress.Value, Mode=TwoWay}"/>
+                                </cwc:SettingsCard>
+                                <cwc:SettingsCard
+                                    Description="{shuxm:ResourceString Name=ViewPageSettingProxyPortDescription}"
+                                    Header="{shuxm:ResourceString Name=ViewPageSettingProxyPortHeader}"
+                                    HeaderIcon="{shuxm:FontIcon Glyph=&#xE8B7;}">
+                                    <NumberBox
+                                        MinWidth="{ThemeResource SettingsCardContentControlMinWidth}"
+                                        VerticalAlignment="Center"
+                                        AcceptsExpression="False"
+                                        Maximum="65535"
+                                        Minimum="1"
+                                        Value="{Binding AppOptions.ProxyPort.Value, Mode=TwoWay}"/>
+                                </cwc:SettingsCard>
+                                <cwc:SettingsCard
+                                    Header="{shuxm:ResourceString Name=ViewModelSettingProxyTestAction}"
+                                    HeaderIcon="{shuxm:FontIcon Glyph=&#xE768;}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button
+                                            Command="{Binding TestProxyCommand}"
+                                            Content="{shuxm:ResourceString Name=ViewModelSettingProxyTestAction}"
+                                            IsEnabled="{Binding IsTestingProxy, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"/>
+                                        <Button
+                                            Command="{Binding SaveProxyCommand}"
+                                            Content="{shuxm:ResourceString Name=ViewModelSettingProxySaveAction}"/>
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            Text="{Binding ProxyTestResult}"
+                                            Visibility="{Binding ProxyTestResult, Converter={StaticResource EmptyObjectToVisibilityConverter}}"/>
+                                    </StackPanel>
+                                </cwc:SettingsCard>
+                            </StackPanel>
+                        </Border>
+                    </Border>
+
                     <!--  外观  -->
                     <Border cw:Effects.Shadow="{ThemeResource CompatCardShadow}" DataContext="{Binding Appearance}">
                         <Border Padding="16" Style="{ThemeResource AcrylicBorderCardStyle}">

@@ -875,6 +875,18 @@
   <data name="ServiceBackgroundImageTypeNone" xml:space="preserve">
     <value>无背景图片</value>
   </data>
+  <data name="ServiceProxyTypeNone" xml:space="preserve">
+    <value>无代理</value>
+  </data>
+  <data name="ServiceProxyTypeSystemProxy" xml:space="preserve">
+    <value>系统代理</value>
+  </data>
+  <data name="ServiceProxyTypeHttp" xml:space="preserve">
+    <value>HTTP 代理</value>
+  </data>
+  <data name="ServiceProxyTypeSocks5" xml:space="preserve">
+    <value>SOCKS5 代理</value>
+  </data>
   <data name="ServiceCloseButtonBehaviorTypeExit" xml:space="preserve">
     <value>退出胡桃</value>
   </data>
@@ -2255,6 +2267,24 @@
   <data name="ViewModelSettingDeleteServerCacheFolderTitle" xml:space="preserve">
     <value>删除转换服务器游戏客户端缓存</value>
   </data>
+  <data name="ViewModelSettingProxySaveSuccess" xml:space="preserve">
+    <value>代理设置已保存</value>
+  </data>
+  <data name="ViewModelSettingProxyTesting" xml:space="preserve">
+    <value>正在测试代理连接...</value>
+  </data>
+  <data name="ViewModelSettingProxyTestSuccess" xml:space="preserve">
+    <value>可用 [{0}ms]</value>
+  </data>
+  <data name="ViewModelSettingProxyTestFailed" xml:space="preserve">
+    <value>不可用</value>
+  </data>
+  <data name="ViewModelSettingProxyTestAction" xml:space="preserve">
+    <value>测试</value>
+  </data>
+  <data name="ViewModelSettingProxySaveAction" xml:space="preserve">
+    <value>保存</value>
+  </data>
   <data name="ViewModelSettingFolderSizeDescription" xml:space="preserve">
     <value>已使用磁盘空间：{0}</value>
   </data>
@@ -3329,6 +3359,33 @@
   </data>
   <data name="ViewPageSettingGeetestVerificationHeader" xml:space="preserve">
     <value>无感验证</value>
+  </data>
+  <data name="ViewPageSettingProxyHeader" xml:space="preserve">
+    <value>网络代理</value>
+  </data>
+  <data name="ViewPageSettingProxyEnabledDescription" xml:space="preserve">
+    <value>启用自定义代理设置</value>
+  </data>
+  <data name="ViewPageSettingProxyEnabledHeader" xml:space="preserve">
+    <value>启用代理</value>
+  </data>
+  <data name="ViewPageSettingProxyTypeDescription" xml:space="preserve">
+    <value>选择代理类型</value>
+  </data>
+  <data name="ViewPageSettingProxyTypeHeader" xml:space="preserve">
+    <value>代理类型</value>
+  </data>
+  <data name="ViewPageSettingProxyAddressDescription" xml:space="preserve">
+    <value>代理服务器地址</value>
+  </data>
+  <data name="ViewPageSettingProxyAddressHeader" xml:space="preserve">
+    <value>代理地址</value>
+  </data>
+  <data name="ViewPageSettingProxyPortDescription" xml:space="preserve">
+    <value>代理服务器端口</value>
+  </data>
+  <data name="ViewPageSettingProxyPortHeader" xml:space="preserve">
+    <value>代理端口</value>
   </data>
   <data name="ViewPageSettingHomeAnnouncementRegionDescription" xml:space="preserve">
     <value>选择想要获取公告的游戏服务器</value>

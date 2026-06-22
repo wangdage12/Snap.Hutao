@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Snap.Hutao.Core.Property;
 using Snap.Hutao.Core.Setting;
 using Snap.Hutao.Model;
+using Snap.Hutao.Model.Intrinsic;
 using Snap.Hutao.Service.Abstraction;
 using Snap.Hutao.Service.BackgroundImage;
 using Snap.Hutao.UI.Xaml.Media.Backdrop;
@@ -49,6 +50,8 @@ internal sealed partial class AppOptions : DbStoreOptions
 
     public ImmutableArray<NameValue<BridgeShareSaveType>> BridgeShareSaveTypes { get; } = ImmutableCollectionsNameValue.FromEnum<BridgeShareSaveType>(type => type.GetLocalizedDescription(SH.ResourceManager, CultureInfo.CurrentCulture) ?? string.Empty);
 
+    public ImmutableArray<NameValue<ProxyType>> ProxyTypes { get; } = ImmutableCollectionsNameValue.FromEnum<ProxyType>(static @enum => @enum.GetLocalizedDescription(SH.ResourceManager, CultureInfo.CurrentCulture) ?? string.Empty);
+
     public ImmutableArray<NameValue<LastWindowCloseBehavior>> LastWindowCloseBehaviors { get; } = ImmutableCollectionsNameValue.FromEnum<LastWindowCloseBehavior>(static @enum => @enum.GetLocalizedDescription(SH.ResourceManager, CultureInfo.CurrentCulture) ?? string.Empty);
 
     [field: MaybeNull]
@@ -83,4 +86,16 @@ internal sealed partial class AppOptions : DbStoreOptions
 
     [field: MaybeNull]
     public IObservableProperty<LastWindowCloseBehavior> LastWindowCloseBehavior { get => field ??= CreateProperty(SettingKeys.LastWindowCloseBehavior, Service.LastWindowCloseBehavior.EnsureNotifyIconCreated); }
+
+    [field: MaybeNull]
+    public IObservableProperty<ProxyType> ProxyType { get => field ??= CreateProperty(SettingKeys.ProxyType, Model.Intrinsic.ProxyType.SystemProxy); }
+
+    [field: MaybeNull]
+    public IObservableProperty<string> ProxyAddress { get => field ??= CreateProperty(SettingKeys.ProxyAddress, string.Empty); }
+
+    [field: MaybeNull]
+    public IObservableProperty<int> ProxyPort { get => field ??= CreateProperty(SettingKeys.ProxyPort, 1080); }
+
+    [field: MaybeNull]
+    public IObservableProperty<bool> ProxyEnabled { get => field ??= CreateProperty(SettingKeys.ProxyEnabled, false); }
 }
