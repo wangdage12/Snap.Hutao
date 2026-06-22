@@ -93,6 +93,8 @@ internal sealed class HutaoWebProxy : IWebProxy
         WebProxy webProxy = new()
         {
             Address = new Uri($"http://{address}:{port}"),
+            BypassProxyOnLocal = false,
+            UseDefaultCredentials = false,
         };
 
         return webProxy;
