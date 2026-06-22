@@ -10,6 +10,7 @@ namespace Snap.Hutao.Core.IO.Http.Proxy;
 
 internal sealed class HutaoWebProxy : IWebProxy
 {
+    private static readonly IWebProxy NoProxy = new DirectWebProxy();
     private readonly AppOptions appOptions;
     private readonly HttpProxyUsingSystemProxy systemProxy;
 
@@ -31,7 +32,7 @@ internal sealed class HutaoWebProxy : IWebProxy
         {
             if (!appOptions.ProxyEnabled.Value)
             {
-                return systemProxy.DisplayProxyUri;
+                return "DIRECT";
             }
 
             return appOptions.ProxyType.Value switch
@@ -43,7 +44,7 @@ internal sealed class HutaoWebProxy : IWebProxy
                 ProxyType.Socks5 => string.IsNullOrEmpty(appOptions.ProxyAddress.Value)
                     ? systemProxy.DisplayProxyUri
                     : $"socks5://{appOptions.ProxyAddress.Value}:{appOptions.ProxyPort.Value}",
-                ProxyType.None => systemProxy.DisplayProxyUri,
+                ProxyType.None => "DIRECT",
                 _ => systemProxy.DisplayProxyUri,
             };
         }
@@ -55,7 +56,7 @@ internal sealed class HutaoWebProxy : IWebProxy
         {
             if (!appOptions.ProxyEnabled.Value)
             {
-                return systemProxy;
+                return NoProxy;
             }
 
             return appOptions.ProxyType.Value switch
@@ -63,7 +64,7 @@ internal sealed class HutaoWebProxy : IWebProxy
                 ProxyType.SystemProxy => systemProxy,
                 ProxyType.Http => CreateHttpProxy(),
                 ProxyType.Socks5 => CreateSocks5Proxy(),
-                ProxyType.None => systemProxy,
+                ProxyType.None => NoProxy,
                 _ => systemProxy,
             };
         }
@@ -84,7 +85,7 @@ internal sealed class HutaoWebProxy : IWebProxy
         string address = appOptions.ProxyAddress.Value;
         int port = appOptions.ProxyPort.Value;
 
-        if (string.IsNullOrEmpty(address))
+        if (!IsValidProxyAddress(address) || !IsValidProxyPort(port))
         {
             return systemProxy;
         }
@@ -102,12 +103,33 @@ internal sealed class HutaoWebProxy : IWebProxy
         string address = appOptions.ProxyAddress.Value;
         int port = appOptions.ProxyPort.Value;
 
-        if (string.IsNullOrEmpty(address))
+        if (!IsValidProxyAddress(address) || !IsValidProxyPort(port))
         {
             return systemProxy;
         }
 
         return new Socks5WebProxy(address, port);
+    }
+
+    private static bool IsValidProxyAddress(string address)
+    {
+        return !string.IsNullOrEmpty(address) &&
+               (Uri.CheckHostName(address) != UriHostNameType.Unknown ||
+                System.Net.IPAddress.TryParse(address, out _));
+    }
+
+    private static bool IsValidProxyPort(int port)
+    {
+        return port is >= 1 and <= 65535;
+    }
+
+    private sealed class DirectWebProxy : IWebProxy
+    {
+        public ICredentials? Credentials { get; set; }
+
+        public Uri? GetProxy(Uri destination) => destination;
+
+        public bool IsBypassed(Uri host) => true;
     }
 }
 

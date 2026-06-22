@@ -222,6 +222,7 @@
                                     <ToggleSwitch
                                         MinWidth="120"
                                         VerticalAlignment="Center"
+                                        IsEnabled="{Binding IsTestingProxy, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"
                                         IsOn="{Binding AppOptions.ProxyEnabled.Value, Mode=TwoWay}"/>
                                 </cwc:SettingsCard>
                                 <cwc:SettingsCard
@@ -232,6 +233,7 @@
                                         <ComboBox
                                             DisplayMemberPath="Name"
                                             ItemsSource="{Binding AppOptions.ProxyTypes}"
+                                            IsEnabled="{Binding IsTestingProxy, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"
                                             SelectedItem="{Binding SelectedProxyType, Mode=TwoWay}"/>
                                     </shuxc:SizeRestrictedContentControl>
                                 </cwc:SettingsCard>
@@ -242,6 +244,7 @@
                                     <TextBox
                                         MinWidth="{ThemeResource SettingsCardContentControlMinWidth}"
                                         VerticalAlignment="Center"
+                                        IsEnabled="{Binding IsTestingProxy, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"
                                         Text="{Binding AppOptions.ProxyAddress.Value, Mode=TwoWay}"/>
                                 </cwc:SettingsCard>
                                 <cwc:SettingsCard
@@ -252,6 +255,7 @@
                                         MinWidth="{ThemeResource SettingsCardContentControlMinWidth}"
                                         VerticalAlignment="Center"
                                         AcceptsExpression="False"
+                                        IsEnabled="{Binding IsTestingProxy, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"
                                         Maximum="65535"
                                         Minimum="1"
                                         Value="{Binding AppOptions.ProxyPort.Value, Mode=TwoWay}"/>
@@ -266,7 +270,8 @@
                                             IsEnabled="{Binding IsTestingProxy, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"/>
                                         <Button
                                             Command="{Binding SaveProxyCommand}"
-                                            Content="{shuxm:ResourceString Name=ViewModelSettingProxySaveAction}"/>
+                                            Content="{shuxm:ResourceString Name=ViewModelSettingProxySaveAction}"
+                                            IsEnabled="{Binding IsTestingProxy, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"/>
                                         <TextBlock
                                             VerticalAlignment="Center"
                                             Text="{Binding ProxyTestResult}"

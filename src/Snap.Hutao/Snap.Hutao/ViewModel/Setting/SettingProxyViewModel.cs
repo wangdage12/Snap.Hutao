@@ -63,7 +63,7 @@ internal sealed partial class SettingProxyViewModel : Abstraction.ViewModel
             using HttpClient httpClient = new(new SocketsHttpHandler
             {
                 Proxy = hutaoWebProxy,
-                UseProxy = AppOptions.ProxyEnabled.Value,
+                UseProxy = true,
             });
 
             httpClient.Timeout = TimeSpan.FromSeconds(10);
