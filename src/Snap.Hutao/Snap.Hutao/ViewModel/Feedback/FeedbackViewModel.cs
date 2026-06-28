@@ -33,7 +33,7 @@ internal sealed partial class FeedbackViewModel : Abstraction.ViewModel
     [GeneratedConstructor]
     public partial FeedbackViewModel(IServiceProvider serviceProvider);
 
-    public static HttpProxyUsingSystemProxy DynamicHttpProxy { get => HttpProxyUsingSystemProxy.Instance; }
+    public partial HutaoWebProxy DynamicHttpProxy { get; }
 
     public partial RuntimeOptions RuntimeOptions { get; }
 

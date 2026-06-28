@@ -4,6 +4,7 @@
 using JetBrains.Annotations;
 using Snap.Hutao.Core.IO.Http;
 using Snap.Hutao.Core.IO.Http.Proxy;
+using Snap.Hutao.Service;
 using Snap.Hutao.Service.Game.Package.Advanced;
 using Snap.Hutao.Web.Hoyolab;
 using Snap.Hutao.Win32;
@@ -36,10 +37,11 @@ internal static partial class ServiceCollectionExtension
                         {
                             SocketsHttpHandler typedHandler = Unsafe.As<SocketsHttpHandler>(handler);
                             typedHandler.UseProxy = true;
-                            typedHandler.Proxy = HttpProxyUsingSystemProxy.Instance;
+                            typedHandler.Proxy = provider.GetRequiredService<HutaoWebProxy>();
                         })
                         .AddHttpMessageHandler<RetryHttpHandler>();
                 })
+                .AddSingleton(sp => new HutaoWebProxy(sp.GetRequiredService<AppOptions>(), HttpProxyUsingSystemProxy.Instance))
                 .AddHttpClients();
 
             services

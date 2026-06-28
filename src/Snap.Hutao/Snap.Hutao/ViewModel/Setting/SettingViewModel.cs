@@ -45,6 +45,8 @@ internal sealed partial class SettingViewModel : Abstraction.ViewModel, INavigat
 
     public partial SettingWebViewViewModel WebView { get; }
 
+    public partial SettingProxyViewModel Proxy { get; }
+
     [ObservableProperty]
     public partial string? UpdateInfo { get; set; }
 
@@ -80,7 +82,7 @@ internal sealed partial class SettingViewModel : Abstraction.ViewModel, INavigat
 
     protected override ValueTask<bool> LoadOverrideAsync(CancellationToken token)
     {
-        MakeSubViewModel([Geetest, Appearance, Storage, HotKey, Home, Game, GachaLog, WebView]);
+        MakeSubViewModel([Geetest, Appearance, Storage, HotKey, Home, Game, GachaLog, WebView, Proxy]);
 
         Storage.CacheFolderView = new(taskContext, HutaoRuntime.LocalCacheDirectory);
         Storage.DataFolderView = new(taskContext, HutaoRuntime.DataDirectory);

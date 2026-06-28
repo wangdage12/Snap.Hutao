@@ -152,4 +152,10 @@ internal static class SettingKeys
     public const string CompactWebView2WindowInactiveOpacity    = "Snap::Hutao::Web::WebView::Compact::InactiveOpacity";
     public const string CompactWebView2WindowPreviousSourceUrl  = "Snap::Hutao::Web::WebView::Compact::PreviousSourceUrl";
     public const string WebView2VideoFastForwardOrRewindSeconds = "Snap::Hutao::Web::WebView::Video::FastForwardOrRewind::Seconds";
+
+    // Proxy
+    public const string ProxyType    = "Snap::Hutao::Web::Proxy::Type";
+    public const string ProxyAddress = "Snap::Hutao::Web::Proxy::Address";
+    public const string ProxyPort    = "Snap::Hutao::Web::Proxy::Port";
+    public const string ProxyEnabled = "Snap::Hutao::Web::Proxy::Enabled";
 }
